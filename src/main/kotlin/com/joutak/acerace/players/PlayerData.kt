@@ -1,0 +1,14 @@
+package com.joutak.acerace.players
+
+import java.util.*
+
+data class PlayerData(
+    val playerUuid: UUID,
+) {
+    companion object {
+        fun get(uniqueId: UUID): Any {
+
+        }
+    }
+
+}

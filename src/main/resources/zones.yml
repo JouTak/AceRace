@@ -1,0 +1,20 @@
+zones:
+  - name: elytra1
+    type: ELYTRA
+    worldName: world
+    x1: 217.0
+    y1: 96.0
+    z1: -628.0
+    x2: 218.0
+    y2: 98.0
+    z2: -630.0
+
+  - name: water
+    type: UNDERWATER
+    worldName: world
+    x1: 222.0
+    y1: 94.0
+    z1: -622.0
+    x2: 223.0
+    y2: 96.0
+    z2: -620.0
