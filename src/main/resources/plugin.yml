@@ -1,7 +1,7 @@
 name: AceRace
 version: '$version'
 main: com.joutak.acerace.AceRacePlugin
-api-version: '1.21'
+api-version: '1.21.4'
 commands:
   ar:
     description: AceRace commands
@@ -10,3 +10,6 @@ commands:
       /ar list
       /ar info <name>
       /ar remove <name>
+      /ar changecon <type> <mod>
+      /ar ready
+      /ar addworld

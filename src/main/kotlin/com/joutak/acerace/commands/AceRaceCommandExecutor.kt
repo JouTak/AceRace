@@ -13,6 +13,9 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         registerCommand(AceRaceListCommand)
         registerCommand(AceRaceInfoCommand)
         registerCommand(AceRaceRemoveCommand)
+        registerCommand(AceRaceChangeConfigCommand)
+        registerCommand(AceRaceReadyCommand)
+        registerCommand(AceRaceAddWorldCommand)
     }
 
     private fun registerCommand(command : AceRaceCommand) {

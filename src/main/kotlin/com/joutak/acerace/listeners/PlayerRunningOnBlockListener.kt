@@ -1,5 +1,6 @@
 package com.joutak.acerace.listeners
 
+import com.joutak.acerace.Config
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.event.EventHandler
@@ -17,7 +18,7 @@ class PlayerRunningOnBlockListener : Listener{
         if (player.hasPotionEffect(PotionEffectType.SPEED)) return
 
         if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.LIGHT_BLUE_CONCRETE){
-            player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 40, 2))
+            player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, Config.SPEED_DURATION, Config.SPEED_AMP))
         }
     }
 }

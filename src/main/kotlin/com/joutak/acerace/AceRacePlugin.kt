@@ -1,9 +1,9 @@
 package com.joutak.acerace
 
 import com.joutak.acerace.commands.AceRaceCommandExecutor
-import com.joutak.acerace.listeners.PlayerJumpingOnBlockListener
-import com.joutak.acerace.listeners.PlayerMoveListener
-import com.joutak.acerace.listeners.PlayerRunningOnBlockListener
+import com.joutak.acerace.listeners.*
+import com.joutak.acerace.worlds.World
+import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
@@ -29,6 +29,7 @@ class AceRacePlugin : JavaPlugin() {
         instance = this
 
         loadConfig()
+        WorldManager.loadWorlds()
         ZoneManager.loadZones()
         registerEvents()
         registerCommands()
@@ -42,6 +43,10 @@ class AceRacePlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlayerJumpingOnBlockListener(), this)
         Bukkit.getPluginManager().registerEvents(PlayerRunningOnBlockListener(), this)
         Bukkit.getPluginManager().registerEvents(PlayerMoveListener(), this)
+        Bukkit.getPluginManager().registerEvents(PlayerJoinListener, this)
+        Bukkit.getPluginManager().registerEvents(PlayerQuitListener, this)
+        Bukkit.getPluginManager().registerEvents(PlayerChangeWorldListener, this)
+        Bukkit.getPluginManager().registerEvents(PlayerDropItemListener, this)
     }
 
     private fun registerCommands() {
@@ -50,6 +55,8 @@ class AceRacePlugin : JavaPlugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
+        saveConfig()
+        WorldManager.saveWorlds()
         ZoneManager.saveZones()
         logger.info("AceRace plugin version ${pluginMeta.version} disabled!")
     }

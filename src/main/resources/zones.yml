@@ -1,16 +1,16 @@
 zones:
-  - name: elytra1
-    type: ELYTRA
+  - type: ELYTRA
+    name: elytra1
     worldName: world
     x1: 217.0
     y1: 96.0
-    z1: -628.0
+    z1: -630.0
     x2: 218.0
     y2: 98.0
-    z2: -630.0
+    z2: -628.0
 
-  - name: water
-    type: UNDERWATER
+  - type: UNDERWATER
+    name: water
     worldName: world
     x1: 222.0
     y1: 94.0
@@ -18,3 +18,43 @@ zones:
     x2: 223.0
     y2: 96.0
     z2: -620.0
+
+  - type: CHECKPOINT
+    name: '1'
+    worldName: world
+    x1: 197.0
+    y1: 96.0
+    z1: -613.0
+    x2: 198.0
+    y2: 98.0
+    z2: -611.0
+
+  - type: CHECKPOINT
+    name: '3'
+    worldName: world
+    x1: 185.0
+    y1: 96.0
+    z1: -613.0
+    x2: 186.0
+    y2: 98.0
+    z2: -610.0
+
+  - type: CHECKPOINT
+    name: '4'
+    worldName: world
+    x1: 180.0
+    y1: 96.0
+    z1: -613.0
+    x2: 181.0
+    y2: 98.0
+    z2: -610.0
+
+  - type: CHECKPOINT
+    name: '2'
+    worldName: world
+    x1: 190.0
+    y1: 96.0
+    z1: -613.0
+    x2: 191.0
+    y2: 98.0
+    z2: -610.0

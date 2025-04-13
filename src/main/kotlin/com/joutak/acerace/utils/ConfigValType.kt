@@ -1,0 +1,23 @@
+package com.joutak.acerace.utils
+
+enum class ConfigValType {
+    LOG_INFO_TO_CONSOLE,
+    TIME_TO_START_GAME,
+    MAX_PLAYERS_IN_GAME,
+    PLAYERS_TO_START,
+    PLAYERS_TO_END,
+    TIME_TO_START_GAME_LOBBY,
+    SET_Y_SMALL,
+    SET_Y_MID,
+    SET_Y_BIG,
+    DIR_MP_MID,
+    DIR_MP_BIG,
+    DIR_MP_ELYTRA,
+    DIR_MP_WATER,
+    SET_Y_ELYTRA,
+    SPEED_AMP,
+    SPEED_DURATION,
+    TIME_TO_END_GAME,
+    TIME_TO_FINISH,
+    LAPSES_TO_FINISH
+}

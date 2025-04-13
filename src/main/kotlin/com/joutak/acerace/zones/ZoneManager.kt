@@ -27,6 +27,10 @@ object ZoneManager {
         return zones
     }
 
+    fun getZoneCheckpoint(): List<ZoneCheckpoint>{
+        return ZoneManager.getZones().values.filterIsInstance<ZoneCheckpoint>()
+    }
+
     fun remove(name: String) {
         if (!zones.containsKey(name))
             throw IllegalArgumentException("Зоны с таким именем не существует.")

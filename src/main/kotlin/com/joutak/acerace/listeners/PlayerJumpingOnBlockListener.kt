@@ -1,6 +1,9 @@
 package com.joutak.acerace.listeners
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import com.joutak.acerace.AceRacePlugin
+import com.joutak.acerace.Config
+import com.joutak.acerace.commands.AceRaceAddWorldCommand
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.event.EventHandler
@@ -12,17 +15,17 @@ class PlayerJumpingOnBlockListener : Listener {
         val player = event.player
 
         if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.LIME_CONCRETE) {
-            player.velocity = player.velocity.setY(1.1)
+            player.velocity = player.velocity.setY(Config.SET_Y_SMALL)
 
         }
         if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.YELLOW_CONCRETE) {
-            player.velocity = player.location.direction.multiply(1.07)
-            player.velocity = player.velocity.setY(2.1)
+            player.velocity = player.location.direction.multiply(Config.DIR_MP_MID)
+            player.velocity = player.velocity.setY(Config.SET_Y_MID)
 
         }
         if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.RED_CONCRETE) {
-            player.velocity = player.location.direction.multiply(4)
-            player.velocity = player.velocity.setY(3.5)
+            player.velocity = player.location.direction.multiply(Config.DIR_MP_BIG)
+            player.velocity = player.velocity.setY(Config.SET_Y_BIG)
 
         }
     }

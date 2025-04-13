@@ -1,6 +1,7 @@
 package com.joutak.acerace.zones
 
 import com.joutak.acerace.AceRacePlugin
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
 
@@ -21,6 +22,7 @@ abstract class Zone(
     val x2: Double
     val y2: Double
     val z2: Double
+    val location: Location
 
     init {
         this.x1 = minOf(x1, x2)
@@ -29,11 +31,12 @@ abstract class Zone(
         this.y2 = maxOf(y1, y2)
         this.z1 = minOf(z1, z2)
         this.z2 = maxOf(z1, z2)
+        location = Location(Bukkit.getWorld(worldName), (x1 + x2)/2, (y1+y2)/2, (z1+z2)/2)
     }
 
     companion object {
         fun deserialize(values: Map<String, Any>): Zone? {
-            AceRacePlugin.instance.getLogger().info("Десериализация информации об арене ${values["name"]}")
+            AceRacePlugin.instance.getLogger().info("Десериализация информации о зоне ${values["name"]}")
 
             return ZoneFactory.createZone(
                 ZoneType.valueOf(values["type"] as String),
@@ -57,7 +60,6 @@ abstract class Zone(
                 playerLoc.y in this.y1 ..this.y2 &&
                 playerLoc.z in this.z1 ..this.z2
     }
-
 
     fun serialize(): Map<String, Any> {
         return mapOf(
