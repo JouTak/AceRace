@@ -4,6 +4,7 @@ import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.worlds.World
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.util.Vector
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -15,7 +16,7 @@ data class PlayerData(
     var currentWorld: World?,
     val games: MutableList<UUID> = mutableListOf<UUID>(),
     var hasWon: Boolean = false,
-    var lapse: Int = 1,
+    var lapse: Int = 0,
     var lastCheck: String = "0"
 ) {
     companion object {
@@ -87,6 +88,8 @@ data class PlayerData(
             player.inventory.clear()
             player.level = 0
             player.exp = 0.0f
+            playerData.lapse = 0
+            playerData.lastCheck = "0"
         }
 
         fun contains(playerUuid: UUID): Boolean {

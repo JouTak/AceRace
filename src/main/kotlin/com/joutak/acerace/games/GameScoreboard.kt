@@ -1,6 +1,5 @@
 package com.joutak.acerace.games
 
-import com.joutak.acerace.players.PlayerData
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
@@ -30,6 +29,7 @@ class GameScoreboard {
 
     fun setBossBarTimer(playersUuids: Iterable<UUID>, phase: GamePhase, timeLeft: Int, totalTime: Int) {
         val newBossBar: BossBar? = when (phase) {
+            GamePhase.GIVEITEMS -> null
 
             GamePhase.START,
             GamePhase.RACING,

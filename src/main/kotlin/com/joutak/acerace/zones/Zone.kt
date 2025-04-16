@@ -31,7 +31,7 @@ abstract class Zone(
         this.y2 = maxOf(y1, y2)
         this.z1 = minOf(z1, z2)
         this.z2 = maxOf(z1, z2)
-        location = Location(Bukkit.getWorld(worldName), (x1 + x2)/2, (y1+y2)/2, (z1+z2)/2)
+        location = Location(Bukkit.getWorld(worldName), (x1 + x2)/2, (y1+y2)/2, (z1+z2)/2, )
     }
 
     companion object {

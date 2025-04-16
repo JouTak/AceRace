@@ -1,6 +1,7 @@
 package com.joutak.acerace.zones
 
 import com.joutak.acerace.Config
+import org.bukkit.GameMode
 import org.bukkit.entity.Player
 
 class ZoneUnderwaterBoost(
@@ -15,6 +16,8 @@ class ZoneUnderwaterBoost(
 ) : Zone(ZoneType.UNDERWATER, name, worldName, x1, y1, z1, x2, y2, z2) {
 
     override fun execute(player: Player){
+        if (player.gameMode != GameMode.ADVENTURE) return
+
         if (player.isInWater) {
             player.velocity = player.location.direction.multiply(Config.DIR_MP_WATER)
         }

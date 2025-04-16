@@ -34,7 +34,7 @@ data class World(
         val world = Bukkit.getWorld(worldName)!!
         val mvWorld = PluginManager.multiverseCore.mvWorldManager.getMVWorld(worldName)
 
-        mvWorld.setTime("day")
+        mvWorld.setTime("midnight")
         mvWorld.setEnableWeather(false)
         mvWorld.setDifficulty(Difficulty.PEACEFUL)
         mvWorld.setGameMode(GameMode.ADVENTURE)

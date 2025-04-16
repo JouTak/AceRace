@@ -47,6 +47,7 @@ class AceRacePlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlayerQuitListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerChangeWorldListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerDropItemListener, this)
+        Bukkit.getPluginManager().registerEvents(PlayerInteractWithInventoryListener, this)
     }
 
     private fun registerCommands() {

@@ -22,6 +22,7 @@ object AceRaceAddWorldCommand : AceRaceCommand("addworld", listOf<String>("name"
         }
         else {
             WorldManager.add(args[0])
+            sender.sendMessage("Добавлен новый мир!")
         }
         return false
     }

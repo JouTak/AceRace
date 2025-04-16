@@ -34,22 +34,24 @@ kotlin {
     jvmToolchain(targetJavaVersion)
 }
 
-//    archiveFileName.set("${project.name}.jar")
-//    if (System.getenv("TESTING") != null) {
-//        destinationDirectory.set(file("C:\\Users\\Lenovo\\Desktop\\server\\plugins"))
-//    }
-//}
-
 tasks.shadowJar {
     archiveClassifier = ""
     archiveFileName.set("${project.name}.jar")
-
-    val serverPath = System.getenv("SERVER_PATH")
     if (System.getenv("TESTING") != null) {
-        if (serverPath != null) destinationDirectory.set(file("$serverPath\\plugins"))
-        else logger.warn("SERVER_PATH property is not set!")
+        destinationDirectory.set(file("C:\\Users\\Lenovo\\Desktop\\server\\plugins"))
     }
 }
+
+//tasks.shadowJar {
+//    archiveClassifier = ""
+//    archiveFileName.set("${project.name}.jar")
+//
+//    val serverPath = System.getenv("SERVER_PATH")
+//    if (System.getenv("TESTING") != null) {
+//        if (serverPath != null) destinationDirectory.set(file("$serverPath\\plugins"))
+//        else logger.warn("SERVER_PATH property is not set!")
+//    }
+//} idk why not working for me but it should tho
 
 tasks.jar {
     finalizedBy("shadowJar")

@@ -28,7 +28,7 @@ object ZoneManager {
     }
 
     fun getZoneCheckpoint(): List<ZoneCheckpoint>{
-        return ZoneManager.getZones().values.filterIsInstance<ZoneCheckpoint>()
+        return getZones().values.filterIsInstance<ZoneCheckpoint>()
     }
 
     fun remove(name: String) {
