@@ -29,7 +29,7 @@ class GameScoreboard {
 
     fun setBossBarTimer(playersUuids: Iterable<UUID>, phase: GamePhase, timeLeft: Int, totalTime: Int) {
         val newBossBar: BossBar? = when (phase) {
-            GamePhase.GIVEITEMS -> null
+            GamePhase.PREP -> null
 
             GamePhase.START,
             GamePhase.RACING,

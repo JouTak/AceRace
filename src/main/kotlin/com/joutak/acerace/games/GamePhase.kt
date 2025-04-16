@@ -1,7 +1,7 @@
 package com.joutak.acerace.games
 
 enum class GamePhase {
-    GIVEITEMS,
+    PREP,
     START,
     RACING,
     END;

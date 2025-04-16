@@ -8,6 +8,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
+
 
 object PlayerJoinListener : Listener {
     @EventHandler
@@ -17,11 +19,16 @@ object PlayerJoinListener : Listener {
         LobbyManager.addPlayer(player)
 
         val item = ItemStack(Material.DIAMOND_BOOTS, 1)
-        item.addEnchantment(Enchantment.DEPTH_STRIDER, 3)
+        val metaBoots: ItemMeta = item.itemMeta
+        metaBoots.isUnbreakable = true
+        item.setItemMeta(metaBoots)
         player.inventory.boots = item
 
         val trident = ItemStack(Material.TRIDENT)
         trident.addEnchantment(Enchantment.RIPTIDE, 3)
+        val metaTrident: ItemMeta = trident.itemMeta
+        metaTrident.isUnbreakable = true
+        trident.setItemMeta(metaTrident)
         player.inventory.addItem(trident)
     }
 }

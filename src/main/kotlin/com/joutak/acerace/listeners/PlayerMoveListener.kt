@@ -1,8 +1,6 @@
 package com.joutak.acerace.listeners
 
 import com.joutak.acerace.Config
-import com.joutak.acerace.games.GameManager
-import com.joutak.acerace.games.GamePhase
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.GameMode
@@ -16,6 +14,11 @@ class PlayerMoveListener : Listener {
         val player = event.player
         val playerData = PlayerData.get(player.uniqueId)
         val location = event.player.location
+
+        if (!playerData.isInGame()) {
+            return
+        }
+
         for (zone in ZoneManager.getZones().values) {
             if (zone.isInside(location)) {
                 zone.execute(player)
@@ -27,7 +30,6 @@ class PlayerMoveListener : Listener {
                 player.teleport(ZoneManager.get(PlayerData.getLastCheck(playerUuid = player.uniqueId)).location)
             }
             if (!player.isGliding) player.inventory.chestplate = null;
-            if (GameManager.get(playerData.games.lastOrNull())!!.getPhase() == GamePhase.START) event.isCancelled = true
         }
     }
 }

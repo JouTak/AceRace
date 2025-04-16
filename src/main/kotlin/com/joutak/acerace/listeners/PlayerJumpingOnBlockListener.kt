@@ -14,16 +14,16 @@ class PlayerJumpingOnBlockListener : Listener {
     fun playerJumpingOnBlockEvent(event: PlayerJumpEvent) {
         val player = event.player
 
-        if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.LIME_CONCRETE) {
+        if (player.location.block.getRelative(BlockFace.DOWN).getType() == Material.LIME_CONCRETE) {
             player.velocity = player.velocity.setY(Config.SET_Y_SMALL)
 
         }
-        if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.YELLOW_CONCRETE) {
+        if (player.location.block.getRelative(BlockFace.DOWN).getType() == Material.YELLOW_CONCRETE) {
             player.velocity = player.location.direction.multiply(Config.DIR_MP_MID)
             player.velocity = player.velocity.setY(Config.SET_Y_MID)
 
         }
-        if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType() == Material.RED_CONCRETE) {
+        if (player.location.block.getRelative(BlockFace.DOWN).getType() == Material.RED_CONCRETE) {
             player.velocity = player.location.direction.multiply(Config.DIR_MP_BIG)
             player.velocity = player.velocity.setY(Config.SET_Y_BIG)
 

@@ -1,6 +1,5 @@
 package com.joutak.acerace.commands
 
-import com.joutak.acerace.zones.Zone
 import com.joutak.acerace.zones.ZoneFactory
 import com.joutak.acerace.zones.ZoneManager
 import com.joutak.acerace.zones.ZoneType
@@ -10,7 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 object AceRaceCreateCommand :
-    AceRaceCommand("create", listOf<String>("type", "name", "world", "x1", "y1", "z1", "x2", "y2", "z2")) {
+    AceRaceCommand("create", listOf("type", "name", "world", "x1", "y1", "z1", "x2", "y2", "z2")) {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")

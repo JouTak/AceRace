@@ -12,9 +12,7 @@ import net.kyori.adventure.text.LinearComponents
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.*
-import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import java.util.*
 import kotlin.math.min
 
