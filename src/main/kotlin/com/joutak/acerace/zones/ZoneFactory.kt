@@ -11,7 +11,7 @@ object ZoneFactory {
                    y2: Double,
                    z2: Double) : Zone {
         return when(type){
-            ZoneType.CHECKPOINT -> ZoneCheckpoint(name, worldName, x1, y1, z1, x2, y2, z2)
+            ZoneType.BARRIER -> ZoneBarrier(name, worldName, x1, y1, z1, x2, y2, z2)
             ZoneType.ELYTRA -> ZoneGiveElytra(name, worldName, x1, y1, z1, x2, y2, z2)
             ZoneType.UNDERWATER -> ZoneUnderwaterBoost(name, worldName, x1, y1, z1, x2, y2, z2)
         }

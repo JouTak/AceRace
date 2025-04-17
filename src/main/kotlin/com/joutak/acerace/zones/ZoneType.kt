@@ -1,7 +1,7 @@
 package com.joutak.acerace.zones
 
 enum class ZoneType(val str: String) {
-    CHECKPOINT("CHECKPOINT"),
+    BARRIER("BARRIER"),
     ELYTRA("ELYTRA"),
     UNDERWATER("UNDERWATER");
 

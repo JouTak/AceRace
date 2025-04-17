@@ -1,6 +1,8 @@
 package com.joutak.acerace.listeners
 
-import com.joutak.acerace.Config
+import com.joutak.acerace.checkpoints.CheckpointManager
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.GameMode
@@ -25,9 +27,15 @@ class PlayerMoveListener : Listener {
             }
         }
 
+        for (checkpoint in CheckpointManager.getCheckpoints().values){
+            if (checkpoint.isInside(location)){
+                checkpoint.execute(player)
+            }
+        }
+
         if (player.gameMode == GameMode.ADVENTURE && playerData.isInGame()) {
-            if (player.y <= Config.Y_DEATH) {
-                player.teleport(ZoneManager.get(PlayerData.getLastCheck(playerUuid = player.uniqueId)).location)
+            if (player.y <= Config.get(ConfigKeys.Y_DEATH)) {
+                player.teleport(CheckpointManager.get(PlayerData.getLastCheck(playerUuid = player.uniqueId)).location)
             }
             if (!player.isGliding) player.inventory.chestplate = null;
         }

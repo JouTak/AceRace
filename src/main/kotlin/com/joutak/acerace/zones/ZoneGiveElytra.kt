@@ -1,6 +1,7 @@
 package com.joutak.acerace.zones
 
-import com.joutak.acerace.Config
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -22,7 +23,7 @@ class ZoneGiveElytra(
 
         player.getInventory().setChestplate(ItemStack(Material.ELYTRA));
         player.isGliding = true
-        player.velocity = player.location.direction.multiply(Config.DIR_MP_ELYTRA)
-        player.velocity = player.velocity.setY(Config.SET_Y_ELYTRA)
+        player.velocity = player.location.direction.multiply(Config.get(ConfigKeys.DIR_MP_ELYTRA))
+        player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_ELYTRA))
     }
 }

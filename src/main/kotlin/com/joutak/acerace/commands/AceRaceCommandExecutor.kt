@@ -14,13 +14,16 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
     private val commands = mutableMapOf<String, AceRaceCommand>()
 
     init {
-        registerCommand(AceRaceCreateCommand)
-        registerCommand(AceRaceListCommand)
+        registerCommand(AceRaceAddZoneCommand)
+        registerCommand(AceRaceZoneListCommand)
         registerCommand(AceRaceInfoCommand)
-        registerCommand(AceRaceRemoveCommand)
+        registerCommand(AceRaceRemoveZoneCommand)
         registerCommand(AceRaceChangeConfigCommand)
         registerCommand(AceRaceReadyCommand)
         registerCommand(AceRaceAddWorldCommand)
+        registerCommand(AceRaceAddCheckpointCommand)
+        registerCommand(AceRaceRemoveCheckpointCommand)
+        registerCommand(AceRaceCheckpointListCommand)
     }
 
     private fun registerCommand(command : AceRaceCommand) {
@@ -39,12 +42,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
             )
         } else {
             return Component.text(
-                "/bp config <key> <value>\n" +
-                        "/bp create <name> <world> <x1> <y1> <z1> <x2> <y2> <z2>\n" +
-                        "/bp remove <name>\n" +
-                        "/bp list\n" +
-                        "/bp info <name>\n" +
-                        "/bp ready",
+                "/ar config <key> <value>\n"
             )
         }
     }

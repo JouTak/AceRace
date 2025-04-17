@@ -1,5 +1,6 @@
 package com.joutak.acerace
 
+import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.commands.AceRaceCommandExecutor
 import com.joutak.acerace.listeners.*
 import com.joutak.acerace.worlds.World
@@ -31,6 +32,7 @@ class AceRacePlugin : JavaPlugin() {
         loadConfig()
         WorldManager.loadWorlds()
         ZoneManager.loadZones()
+        CheckpointManager.loadCheckpoints()
         registerEvents()
         registerCommands()
 
@@ -60,6 +62,7 @@ class AceRacePlugin : JavaPlugin() {
         saveConfig()
         WorldManager.saveWorlds()
         ZoneManager.saveZones()
+        CheckpointManager.saveCheckpoints()
         logger.info("AceRace plugin version ${pluginMeta.version} disabled!")
     }
 }

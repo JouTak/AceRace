@@ -1,6 +1,7 @@
 package com.joutak.acerace.games
 
-import com.joutak.acerace.Config
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.utils.LobbyManager
 import com.joutak.acerace.worlds.WorldManager
 import java.util.*
@@ -12,7 +13,7 @@ object GameManager {
     fun createNewGame(): Game {
         val world = WorldManager.getReadyWorld()!!
         val players = LobbyManager.getReadyPlayers()
-            .slice(0..<min(LobbyManager.getReadyPlayers().size, Config.MAX_PLAYERS_IN_GAME))
+            .slice(0..<min(LobbyManager.getReadyPlayers().size, Config.get(ConfigKeys.MAX_PLAYERS_IN_GAME)))
             .toMutableList()
         val game = Game(world, players)
 

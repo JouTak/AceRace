@@ -1,7 +1,8 @@
 package com.joutak.acerace.games
 
 import com.joutak.acerace.AceRacePlugin
-import com.joutak.acerace.Config
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.utils.PluginManager
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
@@ -44,7 +45,7 @@ class GameLogger(val game: Game) {
     }
 
     fun info(msg: String) {
-        logger.useParentHandlers = Config.LOG_INFO_TO_CONSOLE
+        logger.useParentHandlers = Config.get(ConfigKeys.LOG_INFO_TO_CONSOLE)
         logger.info(msg)
     }
 

@@ -1,7 +1,8 @@
 package com.joutak.acerace.utils
 
 import com.joutak.acerace.AceRacePlugin
-import com.joutak.acerace.Config
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.players.PlayerState
@@ -12,7 +13,10 @@ import net.kyori.adventure.text.LinearComponents
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.*
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
 import java.util.*
 import kotlin.math.min
 
@@ -49,6 +53,20 @@ object LobbyManager {
 
     fun addPlayer(player: Player) {
         PluginManager.multiverseCore.teleportPlayer(Bukkit.getConsoleSender(), player, world.spawnLocation)
+
+        val boots = ItemStack(Material.DIAMOND_BOOTS, 1)
+        val metaBoots: ItemMeta = boots.itemMeta
+        metaBoots.isUnbreakable = true
+        boots.setItemMeta(metaBoots)
+        player.inventory.boots = boots
+
+        val trident = ItemStack(Material.TRIDENT)
+        trident.addEnchantment(Enchantment.RIPTIDE, 3)
+        val metaTrident: ItemMeta = trident.itemMeta
+        metaTrident.isUnbreakable = true
+        trident.setItemMeta(metaTrident)
+        player.inventory.addItem(trident)
+
         Audience.audience(player).sendMessage(
             LinearComponents.linear(
                 Component.text("Для игры в AceRace"),
@@ -80,11 +98,11 @@ object LobbyManager {
             else readyPlayers.remove(player.uniqueId)
 
         val readyPlayersAudience = Audience.audience(readyPlayers.mapNotNull { Bukkit.getPlayer(it) }
-            .slice(0..<min(readyPlayers.size, Config.MAX_PLAYERS_IN_GAME)))
+            .slice(0..<min(readyPlayers.size, Config.get(ConfigKeys.MAX_PLAYERS_IN_GAME))))
 
-        if (readyPlayers.count() >= Config.PLAYERS_TO_START && gameStartTask == null) {
+        if (readyPlayers.count() >= Config.get(ConfigKeys.PLAYERS_TO_START) && gameStartTask == null) {
             if (WorldManager.hasReadyWorld()) {
-                var timeLeft = Config.TIME_TO_START_GAME_LOBBY
+                var timeLeft = Config.get(ConfigKeys.TIME_TO_START_GAME_LOBBY)
                 gameStartTask = Bukkit.getScheduler().runTaskTimer(AceRacePlugin.instance, Runnable {
                     if (timeLeft > 0) {
                         readyPlayersAudience.sendMessage(
@@ -107,7 +125,7 @@ object LobbyManager {
                     )
                 )
             }
-        } else if (readyPlayers.count() < Config.PLAYERS_TO_START) {
+        } else if (readyPlayers.count() < Config.get(ConfigKeys.PLAYERS_TO_START)) {
             if (gameStartTask != null) {
                 readyPlayersAudience.sendMessage(LinearComponents.linear(Component.text("Недостаточно игроков для начала игры!")))
                 resetTask()
@@ -116,7 +134,7 @@ object LobbyManager {
             Audience.audience(world.players).sendMessage(
                 LinearComponents.linear(
                     Component.text("Ожидание "),
-                    Component.text("${Config.PLAYERS_TO_START - readyPlayers.count()}", NamedTextColor.GOLD),
+                    Component.text("${Config.get(ConfigKeys.PLAYERS_TO_START) - readyPlayers.count()}", NamedTextColor.GOLD),
                     Component.text(" игроков для начала игры.")
                 )
             )

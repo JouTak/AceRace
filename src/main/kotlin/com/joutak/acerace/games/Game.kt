@@ -1,9 +1,11 @@
 package com.joutak.acerace.games
 
 import com.joutak.acerace.AceRacePlugin
-import com.joutak.acerace.Config
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.players.PlayerState
+import com.joutak.acerace.utils.Barriers
 import com.joutak.acerace.utils.LobbyManager
 import com.joutak.acerace.utils.PluginManager
 import com.joutak.acerace.worlds.World
@@ -55,7 +57,7 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             }
         }
 
-        setTime(Config.TIME_TO_START_GAME)
+        setTime(Config.get(ConfigKeys.TIME_TO_START_GAME))
         logger.info("Игра началась в составе из ${players.size} игроков:\n${players.joinToString("\n")}")
 
         taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
@@ -83,6 +85,7 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
     private fun prep(){
         for (playerUuid in onlinePlayers){
             PlayerData.setLapse(playerUuid,1)
+            Bukkit.getPlayer(playerUuid)!!.inventory.clear()
 
             val item = ItemStack(Material.LEATHER_BOOTS, 1)
             val metaBoots: ItemMeta = item.itemMeta
@@ -98,12 +101,12 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             Bukkit.getPlayer(playerUuid)!!.inventory.addItem(trident)
         }
 
-
+        Barriers.setBarriers()
         phase = GamePhase.START
     }
 
     private fun startCountdown() {
-        if (getPlayers(checkRemainingPlayers).size == 0){
+        if (onlinePlayers.isEmpty()){
             Bukkit.getScheduler().cancelTask(taskId)
             logger.saveGameResults()
 
@@ -154,30 +157,12 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             return
         }
 
-        setTime(Config.TIME_TO_FINISH)
+        Barriers.deleteBarriers()
+        setTime(Config.get(ConfigKeys.TIME_TO_FINISH))
         phase = GamePhase.RACING
     }
 
     private fun timer() {
-        if (getPlayers(checkRemainingPlayers).size == 0){
-            Bukkit.getScheduler().cancelTask(taskId)
-            logger.saveGameResults()
-
-            for (playerUuid in onlinePlayers) {
-                PlayerData.resetGame(playerUuid)
-                Bukkit.getPlayer(playerUuid)!!.inventory.clear()
-
-                Bukkit.getPlayer(playerUuid)?.let {
-                    scoreboard.removeFor(it)
-                    LobbyManager.addPlayer(it)
-                }
-            }
-
-            logger.info("Игра завершилась")
-
-            world.reset()
-            GameManager.remove(uuid)
-        }
 
         if (timeLeft > 0) {
             checkPlayers()
@@ -185,14 +170,14 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             return
         }
 
-        setTime(Config.TIME_TO_END_GAME)
+        setTime(Config.get(ConfigKeys.TIME_TO_END_GAME))
         phase = GamePhase.END
     }
 
     private fun finish(){
 
         for (playerUuid in onlinePlayers){
-            Bukkit.getPlayer(playerUuid)!!.gameMode = GameMode.SPECTATOR
+            Bukkit.getPlayer(playerUuid)?.gameMode = GameMode.SPECTATOR
         }
 
         if (timeLeft > 0) {
@@ -248,7 +233,14 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             }
         }
 
-        for (playerUuid in onlinePlayers.filter { PlayerData.get(it).isInGame() }){
+        if (getPlayers(checkRemainingPlayers).isEmpty()){
+
+            phase = GamePhase.END
+            setTime(Config.get(ConfigKeys.TIME_TO_END_GAME))
+            return
+        }
+
+        for (playerUuid in onlinePlayers){
             if (PlayerData.getLapse(playerUuid) == 1){
                 val item = ItemStack(Material.LEATHER_BOOTS, 1)
                 val metaBoots: ItemMeta = item.itemMeta
@@ -270,9 +262,10 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
                 item.setItemMeta(metaBoots)
                 Bukkit.getPlayer(playerUuid)!!.inventory.boots = item
             }
-            if (PlayerData.getState(playerUuid) == PlayerState.FINISHED && PlayerData.getLapse(playerUuid) != 0){
+            if (PlayerData.getState(playerUuid) == PlayerState.FINISHED && PlayerData.getLapse(playerUuid) != 1){
                 Bukkit.getPlayer(playerUuid)!!.gameMode = GameMode.SPECTATOR
-                PlayerData.setLapse(playerUuid,0)
+                PlayerData.setLapse(playerUuid, 1)
+                PlayerData.setLastCheck(playerUuid, "0")
                 Bukkit.getPlayer(playerUuid)?.let { Audience.audience(it).showTitle(Title.title(LinearComponents.linear(Component.text("Ты финишировал!")), LinearComponents.linear())) }
                 Audience.audience(onlinePlayers.mapNotNull { Bukkit.getPlayer(it) }).sendMessage(Component.text(Bukkit.getPlayer(playerUuid)!!.name + " финишировал!"))
             }

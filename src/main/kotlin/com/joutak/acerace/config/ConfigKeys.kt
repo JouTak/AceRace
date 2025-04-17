@@ -3,7 +3,7 @@ package com.joutak.acerace.config
 object ConfigKeys {
     val LOG_INFO_TO_CONSOLE = boolean("LOG_INFO_TO_CONSOLE", true)
     val MAX_PLAYERS_IN_GAME = int("MAX_PLAYERS_IN_GAME", 8)
-    val PLAYERS_TO_START = int("PLAYERS_TO_START", 1)
+    val PLAYERS_TO_START = int("PLAYERS_TO_START", 4)
     val PLAYERS_TO_END = int("PLAYERS_TO_END", 8)
     val LAPSES_TO_FINISH = int("LAPSES_TO_FINISH",3)
     val TIME_TO_START_GAME_LOBBY = int("TIME_TO_START_GAME_LOBBY", 10)

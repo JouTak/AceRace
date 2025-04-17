@@ -10,6 +10,6 @@ commands:
       /ar list
       /ar info <name>
       /ar remove <name>
-      /ar changecon <type> <mod>
+      /ar config <type> <mod>
       /ar ready
       /ar addworld

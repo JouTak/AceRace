@@ -1,10 +1,12 @@
 package com.joutak.acerace.commands
 
+import com.joutak.acerace.checkpoints.Checkpoint
+import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceRemoveCommand : AceRaceCommand("remove", listOf<String>("remove")) {
+object AceRaceRemoveCheckpointCommand : AceRaceCommand("removeCheck", listOf<String>("remove")) {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
@@ -16,8 +18,8 @@ object AceRaceRemoveCommand : AceRaceCommand("remove", listOf<String>("remove"))
         }
 
         try {
-            ZoneManager.remove(args[0])
-            sender.sendMessage("Зона ${args[0]} успешно удалена!")
+            CheckpointManager.remove(args[0])
+            sender.sendMessage("Чекпоинт ${args[0]} успешно удален!")
         }
         catch (e: IllegalArgumentException) {
             sender.sendMessage("${e.message}")
@@ -30,7 +32,7 @@ object AceRaceRemoveCommand : AceRaceCommand("remove", listOf<String>("remove"))
         if (!sender.isOp) return emptyList()
 
         return when (args.size) {
-            1 -> ZoneManager.getZones().keys.filter { it.startsWith(args[0], true) }
+            1 -> CheckpointManager.getCheckpoints().keys.filter { it.startsWith(args[0], true) }
             else -> emptyList()
         }
     }

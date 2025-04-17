@@ -27,10 +27,6 @@ object ZoneManager {
         return zones
     }
 
-    fun getZoneCheckpoint(): List<ZoneCheckpoint>{
-        return getZones().values.filterIsInstance<ZoneCheckpoint>()
-    }
-
     fun remove(name: String) {
         if (!zones.containsKey(name))
             throw IllegalArgumentException("Зоны с таким именем не существует.")
@@ -57,7 +53,7 @@ object ZoneManager {
             try {
                 add(Zone.deserialize(value)!!)
             } catch (e: Exception) {
-                AceRacePlugin.instance.getLogger().severe("Ошибка при загрузке зон: ${e.message}")
+                AceRacePlugin.instance.logger.severe("Ошибка при загрузке зон: ${e.message}")
                 break
             }
         }
@@ -73,7 +69,7 @@ object ZoneManager {
         try {
             zonesFile.save(fx)
         } catch (e: IOException) {
-            AceRacePlugin.instance.getLogger().severe("Ошибка при сохранении зон: ${e.message}")
+            AceRacePlugin.instance.logger.severe("Ошибка при сохранении зон: ${e.message}")
         }
     }
 }
