@@ -21,6 +21,7 @@ import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.scoreboard.Team
 import java.util.*
 
 class Game(private val world: World, private val players: MutableList<UUID>) : Runnable {

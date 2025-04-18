@@ -51,7 +51,8 @@ tasks.shadowJar {
 //        if (serverPath != null) destinationDirectory.set(file("$serverPath\\plugins"))
 //        else logger.warn("SERVER_PATH property is not set!")
 //    }
-//} idk why not working for me but it should tho
+//}
+// idk why not working for me but it should tho
 
 tasks.jar {
     finalizedBy("shadowJar")

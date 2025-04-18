@@ -4,7 +4,7 @@ import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceInfoCommand : AceRaceCommand("info", listOf<String>("name")) {
+object AceRaceZoneInfoCommand : AceRaceCommand("zoneInfo", listOf("name")) {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
@@ -20,7 +20,6 @@ object AceRaceInfoCommand : AceRaceCommand("info", listOf<String>("name")) {
 
             sender.sendMessage("Информация о зоне ${zone.name}:")
             sender.sendMessage("Вид: ${zone.type}")
-            sender.sendMessage("Мир: ${zone.worldName}")
             sender.sendMessage("Координаты: (${zone.x1}, ${zone.y1}, ${zone.z1} ; ${zone.x2}, ${zone.y2}, ${zone.z2})")
         }
         catch (e: IllegalArgumentException) {

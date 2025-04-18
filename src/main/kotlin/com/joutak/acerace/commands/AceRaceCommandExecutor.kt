@@ -16,7 +16,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
     init {
         registerCommand(AceRaceAddZoneCommand)
         registerCommand(AceRaceZoneListCommand)
-        registerCommand(AceRaceInfoCommand)
+        registerCommand(AceRaceZoneInfoCommand)
         registerCommand(AceRaceRemoveZoneCommand)
         registerCommand(AceRaceChangeConfigCommand)
         registerCommand(AceRaceReadyCommand)
@@ -24,6 +24,8 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         registerCommand(AceRaceAddCheckpointCommand)
         registerCommand(AceRaceRemoveCheckpointCommand)
         registerCommand(AceRaceCheckpointListCommand)
+        registerCommand(AceRaceCheckpointInfoCommand)
+        registerCommand(AceRaceWorldListCommand)
     }
 
     private fun registerCommand(command : AceRaceCommand) {
@@ -33,7 +35,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
     private fun getUsageMessage(sender: CommandSender): Component {
         if (sender is Player && !sender.isOp) {
             return LinearComponents.linear(
-                Component.text("/bp ready", NamedTextColor.GOLD),
+                Component.text("/ar ready", NamedTextColor.GOLD),
                 Component.text(" - "),
                 Component.text("Встать", NamedTextColor.GREEN),
                 Component.text(" в очередь/"),
@@ -42,7 +44,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
             )
         } else {
             return Component.text(
-                "/ar config <key> <value>\n"
+                ""
             )
         }
     }

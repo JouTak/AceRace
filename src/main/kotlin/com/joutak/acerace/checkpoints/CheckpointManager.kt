@@ -67,16 +67,12 @@ object CheckpointManager {
     fun saveCheckpoints() {
         val fx = File(AceRacePlugin.instance.dataFolder, "checkpoints.yml")
 
-        AceRacePlugin.instance.logger.info("SAVING")
-
         checkpointsFile.set("checkpoints", checkpoints.values.map {
                 value -> value.serialize()
         })
 
         try {
             checkpointsFile.save(fx)
-
-            AceRacePlugin.instance.logger.info("SAVING2")
         } catch (e: IOException) {
             AceRacePlugin.instance.logger.severe("Ошибка при сохранении чекпоинтов: ${e.message}")
         }

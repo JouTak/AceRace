@@ -1,10 +1,10 @@
 package com.joutak.acerace.commands
 
-import com.joutak.acerace.zones.ZoneManager
+import com.joutak.acerace.worlds.WorldManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceZoneListCommand : AceRaceCommand("zoneList", listOf()) {
+object AceRaceWorldListCommand : AceRaceCommand("worldList", listOf()) {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
@@ -15,12 +15,12 @@ object AceRaceZoneListCommand : AceRaceCommand("zoneList", listOf()) {
             return false
         }
 
-        if (ZoneManager.getZones().isEmpty()) {
-            sender.sendMessage("Нет активных зон.")
+        if (WorldManager.getWorlds().isEmpty()) {
+            sender.sendMessage("Нет свободных миров.")
         } else {
-            sender.sendMessage("Список зон:")
-            ZoneManager.getZones().values.forEach {
-                sender.sendMessage(it.name)
+            sender.sendMessage("Список свободных миров:")
+            WorldManager.getWorlds().values.forEach {
+                sender.sendMessage(it.worldName)
             }
         }
 

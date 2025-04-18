@@ -9,7 +9,7 @@ import org.bukkit.entity.Player
 
 
 object AceRaceAddCheckpointCommand :
-    AceRaceCommand("addCheckpoint", listOf("world", "name", "x1", "y1", "z1", "x2", "y2", "z2", "yaw", "pitch")) {
+    AceRaceCommand("addCheckpoint", listOf("name", "x1", "y1", "z1", "x2", "y2", "z2", "yaw", "pitch")) {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
@@ -21,23 +21,18 @@ object AceRaceAddCheckpointCommand :
         }
 
         try {
-            if (Bukkit.getWorld(args[0]) == null) {
-                sender.sendMessage("Мира с таким именем не существует!")
-                return true
-            }
 
-            val x1 = minOf(args[2].toDouble(), args[5].toDouble())
-            val x2 = maxOf(args[2].toDouble(), args[5].toDouble())
-            val y1 = minOf(args[3].toDouble(), args[6].toDouble())
-            val y2 = maxOf(args[3].toDouble(), args[6].toDouble())
-            val z1 = minOf(args[4].toDouble(), args[7].toDouble())
-            val z2 = maxOf(args[4].toDouble(), args[7].toDouble())
-            val yaw = args[8].toFloat()
-            val pitch = args[9].toFloat()
+            val x1 = minOf(args[1].toDouble(), args[4].toDouble())
+            val x2 = maxOf(args[1].toDouble(), args[4].toDouble())
+            val y1 = minOf(args[2].toDouble(), args[5].toDouble())
+            val y2 = maxOf(args[2].toDouble(), args[5].toDouble())
+            val z1 = minOf(args[3].toDouble(), args[6].toDouble())
+            val z2 = maxOf(args[3].toDouble(), args[6].toDouble())
+            val yaw = args[7].toFloat()
+            val pitch = args[8].toFloat()
 
             val newCheckpoint = Checkpoint(
                 args[0],
-                args[1],
                 x1,
                 y1,
                 z1,
@@ -64,15 +59,14 @@ object AceRaceAddCheckpointCommand :
             return emptyList()
 
         return when (args.size) {
-            1 -> Bukkit.getWorlds().map { it.name }
-            3 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
-            4 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
-            5 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
-            6 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
-            7 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
-            8 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
-            9 -> if (sender is Player) listOf(sender.location.yaw.toInt().toString()) else emptyList()
-            10 -> if (sender is Player) listOf(sender.location.pitch.toInt().toString()) else emptyList()
+            2 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
+            3 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
+            4 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
+            5 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
+            6 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
+            7 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
+            8 -> if (sender is Player) listOf(sender.location.yaw.toInt().toString()) else emptyList()
+            9 -> if (sender is Player) listOf(sender.location.pitch.toInt().toString()) else emptyList()
             else -> emptyList()
         }
     }

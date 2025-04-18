@@ -15,7 +15,7 @@ data class World(
 
     companion object {
         fun deserialize(values: Map<String, Any>): World {
-            AceRacePlugin.instance.getLogger().info("Десериализация информации о мире ${values["name"]}")
+            AceRacePlugin.instance.logger.info("Десериализация информации о мире ${values["worldName"]}")
             return World(
                 values["worldName"] as String,
             )

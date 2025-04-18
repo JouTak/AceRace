@@ -5,19 +5,16 @@ import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.players.PlayerState
-import com.joutak.acerace.utils.PluginManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
 import net.kyori.adventure.title.Title
-import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import kotlin.math.floor
 
 class Checkpoint(
-    val worldName: String,
     val name: String,
     x1: Double,
     y1: Double,
@@ -34,7 +31,6 @@ class Checkpoint(
     val x2: Double
     val y2: Double
     val z2: Double
-    val location: Location
 
     init {
         this.x1 = minOf(x1, x2)
@@ -43,14 +39,12 @@ class Checkpoint(
         this.y2 = maxOf(y1, y2)
         this.z1 = minOf(z1, z2)
         this.z2 = maxOf(z1, z2)
-        location = Location(Bukkit.getWorld(worldName), (x1 + x2)/2, (y1+y2)/2, (z1+z2)/2, yaw, pitch)
     }
     companion object {
         fun deserialize(values: Map<String, Any>): Checkpoint {
             AceRacePlugin.instance.logger.info("Десериализация информации о чекпоинте ${values["name"]}")
 
             return Checkpoint(
-                values["worldName"] as String,
                 values["name"] as String,
                 values["x1"] as Double,
                 values["y1"] as Double,
@@ -116,7 +110,6 @@ class Checkpoint(
     }
 
     fun isInside(playerLoc: Location): Boolean {
-        if (playerLoc.world.name != worldName) return false
         return playerLoc.x in this.x1..this.x2&&
                 playerLoc.y in this.y1 ..this.y2 &&
                 playerLoc.z in this.z1 ..this.z2
@@ -124,7 +117,6 @@ class Checkpoint(
 
     fun serialize(): Map<String, Any> {
         return mapOf(
-            "worldName" to this.worldName,
             "name" to this.name,
             "x1" to this.x1,
             "y1" to this.y1,
