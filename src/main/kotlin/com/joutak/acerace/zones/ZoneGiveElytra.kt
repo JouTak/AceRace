@@ -21,7 +21,7 @@ class ZoneGiveElytra(
     override fun execute(player: Player){
         if (player.gameMode != GameMode.ADVENTURE) return
 
-        player.getInventory().setChestplate(ItemStack(Material.ELYTRA));
+        player.inventory.chestplate = ItemStack(Material.ELYTRA);
         player.isGliding = true
         player.velocity = player.location.direction.multiply(Config.get(ConfigKeys.DIR_MP_ELYTRA))
         player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_ELYTRA))

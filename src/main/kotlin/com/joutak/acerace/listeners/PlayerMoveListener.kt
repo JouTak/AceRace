@@ -14,13 +14,10 @@ class PlayerMoveListener : Listener {
     @EventHandler
     fun playerMoveEvent(event : PlayerMoveEvent) {
         val player = event.player
-        val playerData = PlayerData.get(player.uniqueId)
         val location = event.player.location
 
-        if (!playerData.isInGame()) {
-            return
-        }
-
+        if (player.gameMode != GameMode.ADVENTURE) return
+        
         for (zone in ZoneManager.getZones().values) {
             if (zone.isInside(location)) {
                 zone.execute(player)
@@ -33,11 +30,10 @@ class PlayerMoveListener : Listener {
             }
         }
 
-        if (player.gameMode == GameMode.ADVENTURE && playerData.isInGame()) {
-            if (player.y <= Config.get(ConfigKeys.Y_DEATH)) {
-                player.teleport(CheckpointManager.get(PlayerData.getLastCheck(playerUuid = player.uniqueId)).location)
-            }
-            if (!player.isGliding) player.inventory.chestplate = null;
+        if (player.y <= Config.get(ConfigKeys.Y_DEATH)) {
+            player.teleport(CheckpointManager.get(PlayerData.getLastCheck(playerUuid = player.uniqueId)).location)
         }
+        if (!player.isGliding) player.inventory.chestplate = null;
+
     }
 }
