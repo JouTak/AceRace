@@ -35,7 +35,7 @@ object AceRaceCheckpointInfoCommand : AceRaceCommand("checkpointInfo", listOf<St
         if (!sender.isOp) return emptyList()
 
         return when (args.size) {
-            1 -> ZoneManager.getZones().keys.filter { it.startsWith(args[0], true) }
+            1 -> CheckpointManager.getCheckpoints().keys.filter { it.startsWith(args[0], true) }
             else -> emptyList()
         }
     }

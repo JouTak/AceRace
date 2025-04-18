@@ -108,6 +108,7 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
 
     private fun startCountdown() {
         if (onlinePlayers.isEmpty()){
+
             Bukkit.getScheduler().cancelTask(taskId)
             logger.saveGameResults()
 
@@ -126,6 +127,7 @@ class Game(private val world: World, private val players: MutableList<UUID>) : R
             world.reset()
             GameManager.remove(uuid)
         }
+
         logger.info("$timeLeft секунд до начала игры!")
         Audience.audience(onlinePlayers.mapNotNull { Bukkit.getPlayer(it) }).showTitle(
             when (timeLeft) {
