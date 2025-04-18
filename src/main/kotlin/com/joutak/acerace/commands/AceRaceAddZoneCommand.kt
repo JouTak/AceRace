@@ -65,6 +65,9 @@ object AceRaceAddZoneCommand :
             4 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
             5 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
             6 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
+            7 -> if (sender is Player) listOf(sender.location.x.toInt().toString()) else emptyList()
+            8 -> if (sender is Player) listOf(sender.location.y.toInt().toString()) else emptyList()
+            9 -> if (sender is Player) listOf(sender.location.z.toInt().toString()) else emptyList()
             else -> emptyList()
         }
     }
