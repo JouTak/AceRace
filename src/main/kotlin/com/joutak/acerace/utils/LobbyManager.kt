@@ -3,6 +3,7 @@ package com.joutak.acerace.utils
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.games.GameManager
+import com.joutak.acerace.games.GameScoreboard
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.worlds.WorldManager
@@ -65,6 +66,7 @@ object LobbyManager {
                 .getMVWorld(world)
                 .spawnLocation,
         )
+
         LobbyReadyBossBar.setFor(player)
         val audience = Audience.audience(player)
 

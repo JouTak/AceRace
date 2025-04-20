@@ -53,6 +53,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         LobbyReadyBossBar.removeAllBossBars()
         world.setState(WorldState.INGAME)
         phase = GamePhase.PREP
+
         for (playerUuid in players) {
             val playerData = PlayerData.get(playerUuid)
             playerData.addGame(this.uuid)
@@ -60,6 +61,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             Bukkit.getPlayer(playerUuid)?.let {
                 PluginManager.multiverseCore.teleportPlayer(Bukkit.getConsoleSender(), it, Bukkit.getWorld(world.worldName)!!.spawnLocation)
                 LobbyManager.removeFromReadyPlayers(it)
+                it.gameMode = GameMode.ADVENTURE
                 scoreboard.setFor(it)
             }
         }
@@ -78,8 +80,8 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
 
 
     override fun run() {
-        scoreboard.update(getPlayers(checkRemainingPlayers).size)
-        scoreboard.setBossBarTimer(onlinePlayers, phase, timeLeft, totalTime)
+        scoreboard.update(getRemainingPlayers().count())
+        scoreboard.setBossBarTimer(getAvailablePlayers(), phase, timeLeft, totalTime)
 
         when (phase){
             GamePhase.PREP -> prep()
@@ -96,6 +98,8 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         val board: Scoreboard = manager.newScoreboard
         val noCollisionTeam: Team = board.registerNewTeam("noCollisionTeam")
         noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
+
+        AceRacePlugin.instance.logger.info(noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
 
         for (playerUuid in onlinePlayers){
             noCollisionTeam.addPlayer(Bukkit.getOfflinePlayer(playerUuid))
@@ -123,28 +127,9 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     private fun startCountdown() {
-        if (onlinePlayers.isEmpty()){
-
-            Bukkit.getScheduler().cancelTask(taskId)
-            logger.saveGameResults()
-
-            for (playerUuid in onlinePlayers) {
-                PlayerData.resetPlayer(playerUuid)
-                Bukkit.getPlayer(playerUuid)!!.inventory.clear()
-
-                Bukkit.getPlayer(playerUuid)?.let {
-                    scoreboard.removeFor(it)
-                    LobbyManager.teleportToLobby(it)
-                }
-            }
-
-            logger.info("Игра завершилась")
-
-            world.reset()
-            GameManager.remove(uuid)
-        }
 
         logger.info("$timeLeft секунд до начала игры!")
+
         Audience.audience(onlinePlayers.mapNotNull { Bukkit.getPlayer(it) }).showTitle(
             when (timeLeft) {
                 2 -> Title.title(
@@ -195,6 +180,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         phase = GamePhase.END
 
         for (playerUuid in onlinePlayers){
+            Bukkit.getPlayer(playerUuid)?.gameMode = GameMode.SPECTATOR
             if (!PlayerData.get(playerUuid).isFinished()) {
                 Bukkit.getPlayer(playerUuid)?.let {
                     Audience.audience(it).showTitle(
@@ -212,38 +198,33 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
 
     }
 
-    private fun finish(){
-        for (playerUuid in onlinePlayers) {
-            Bukkit.getPlayer(playerUuid)?.gameMode = GameMode.SPECTATOR
-        }
-
+    private fun finish() {
         if (timeLeft > 0) {
             timeLeft--
             return
         }
+        Bukkit.getScheduler().cancelTask(taskId)
+        logger.saveGameResults()
 
-        for (playerUuid in onlinePlayers) {
-            PlayerData.resetPlayer(playerUuid)
-            Bukkit.getPlayer(playerUuid)!!.inventory.clear()
+        world.reset()
+        for (playerUuid in getAvailablePlayers()) {
+            if (playerUuid in onlinePlayers) {
+                PlayerData.resetPlayer(playerUuid)
+            }
 
             Bukkit.getPlayer(playerUuid)?.let {
                 scoreboard.removeFor(it)
+
+                if (playerUuid in onlinePlayers) it.gameMode = GameMode.ADVENTURE
                 LobbyManager.teleportToLobby(it)
             }
         }
 
         logger.info("Игра завершилась")
 
-        world.reset()
         GameManager.remove(uuid)
-
-
-        for (playerUuid in onlinePlayers) {
-            Bukkit.getPlayer(playerUuid)?.gameMode = GameMode.ADVENTURE
-        }
-
-        Bukkit.getScheduler().cancelTask(taskId)
-        logger.saveGameResults()
+        logger.close()
+        LobbyManager.check()
     }
 
     private fun getPlayers(checker: (UUID) -> Boolean): List<UUID> {
@@ -260,19 +241,18 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     fun checkPlayers() {
-        for (playerUuid in onlinePlayers.filter { !GameManager.isPlaying(it) }) {
+        for (playerUuid in onlinePlayers.filter {
+            !Bukkit
+                .getPlayer(it)
+                ?.world
+                ?.name
+                .equals(world.worldName)
+        }) {
             logger.info("Игрок $playerUuid вышел из игры!")
             Bukkit.getPlayer(playerUuid)?.let {
                 scoreboard.removeFor(it)
             }
             onlinePlayers.remove(playerUuid)
-            PlayerData.resetPlayer(playerUuid)
-            Bukkit.getPlayer(playerUuid)!!.inventory.clear()
-
-            Bukkit.getPlayer(playerUuid)?.let {
-                scoreboard.removeFor(it)
-                LobbyManager.teleportToLobby(it)
-            }
         }
 
         if (getPlayers(checkRemainingPlayers).isEmpty()){
@@ -322,8 +302,6 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
                     ).sendMessage(Component.text(Bukkit.getPlayer(playerUuid)!!.name + " финишировал за $time секунд(ы)!"))
             }
         }
-
-        phase = GamePhase.RACING
     }
 
     fun addSpectator(player: Player) {
@@ -340,6 +318,17 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         spectators.remove(player.uniqueId)
         scoreboard.removeFor(player)
     }
+
+    private fun getRemainingPlayers(): Iterable<UUID> =
+        onlinePlayers.filter {
+            if (Bukkit.getPlayer(it) == null) {
+                false
+            } else {
+                Bukkit.getPlayer(it)!!.gameMode == GameMode.ADVENTURE
+            }
+        }
+
+    private fun getAvailablePlayers(): Iterable<UUID> = (onlinePlayers + spectators).toSet()
 
     fun hasSpectator(player: Player): Boolean = spectators.contains(player.uniqueId)
 

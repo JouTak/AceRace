@@ -31,11 +31,13 @@ class GameLogger(val game: Game) {
     private val gameFolder: File = File(dataFolder, game.uuid.toString())
     private val resultFile = File(gameFolder, "${game.uuid}.yml")
     private val logFile = File(gameFolder, "${game.uuid}.log")
+    private val logFileHandler: FileHandler
 
     init {
         gameFolder.mkdirs()
         resultFile.createNewFile()
         logFile.createNewFile()
+        logFileHandler = FileHandler(logFile.absolutePath, true)
 
         val fileHandler = FileHandler(logFile.absolutePath, true)
         fileHandler.formatter = object : SimpleFormatter() {
@@ -76,7 +78,11 @@ class GameLogger(val game: Game) {
         } catch (e: IOException) {
             PluginManager.getLogger().severe("Ошибка при сохранении информации об игре: ${e.message}")
         }
+    }
 
-
+    fun close() {
+        logFileHandler.flush()
+        logFileHandler.close()
+        logger.removeHandler(logFileHandler)
     }
 }
