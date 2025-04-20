@@ -55,8 +55,6 @@ object CheckpointManager {
         for (value in checkpointsList) {
             try {
                 add(Checkpoint.deserialize(value))
-
-                AceRacePlugin.instance.logger.info("LOADING2")
             } catch (e: Exception) {
                 AceRacePlugin.instance.logger.severe("Ошибка при загрузке чекпоинтов: ${e.message}")
                 break

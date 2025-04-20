@@ -4,7 +4,7 @@ import com.joutak.acerace.checkpoints.CheckpointManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceCheckpointListCommand : AceRaceCommand("checkpointList", listOf<String>()) {
+object AceRaceCheckpointListCommand : AceRaceCommand("checkpointList", listOf(), "acerace.admin") {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")

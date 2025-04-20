@@ -1,11 +1,10 @@
 package com.joutak.acerace.commands
 
 import com.joutak.acerace.checkpoints.CheckpointManager
-import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceCheckpointInfoCommand : AceRaceCommand("checkpointInfo", listOf<String>("name")) {
+object AceRaceCheckpointInfoCommand : AceRaceCommand("checkpointInfo", listOf("name"), "acerace.admin") {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
@@ -17,7 +16,7 @@ object AceRaceCheckpointInfoCommand : AceRaceCommand("checkpointInfo", listOf<St
         }
 
         try {
-            val checkpoint = CheckpointManager.get(args[1])
+            val checkpoint = CheckpointManager.get(args[0])
 
             sender.sendMessage("Информация о зоне ${checkpoint.name}:")
             sender.sendMessage("Координаты: (${checkpoint.x1}, ${checkpoint.y1}, ${checkpoint.z1} ; ${checkpoint.x2}, ${checkpoint.y2}, ${checkpoint.z2})")

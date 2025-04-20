@@ -1,11 +1,12 @@
 package com.joutak.acerace.config
 
 import com.joutak.acerace.AceRacePlugin
+import com.joutak.acerace.utils.PluginManager
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 
 object Config {
-    private val configFile = File(AceRacePlugin.instance.dataFolder, "config.yml")
+    private val configFile = File(PluginManager.getDataFolder(), "config.yml")
     private val config: YamlConfiguration
 
     init {

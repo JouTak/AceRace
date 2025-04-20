@@ -1,6 +1,7 @@
 package com.joutak.acerace.config
 
 object ConfigKeys {
+    val LOBBY_WORLD_NAME = string("LOBBY_WORLD_NAME", "lobby")
     val LOG_INFO_TO_CONSOLE = boolean("LOG_INFO_TO_CONSOLE", true)
     val MAX_PLAYERS_IN_GAME = int("MAX_PLAYERS_IN_GAME", 8)
     val PLAYERS_TO_START = int("PLAYERS_TO_START", 4)
@@ -21,6 +22,8 @@ object ConfigKeys {
     val SPEED_DURATION = int("SPEED_DURATION",40)
     val SPEED_AMP = int("SPEED_AMP",2)
     val Y_DEATH = int("Y_DEATH",-64)
+    val SPARTAKIADA_ATTEMPTS = int("SPARTAKIADA_ATTEMPTS", 5)
+    val SPARTAKIADA_MODE = boolean("SPARTAKIADA_MODE", false)
 
     val all =
         setOf(
@@ -43,7 +46,9 @@ object ConfigKeys {
             SET_Y_ELYTRA,
             SPEED_DURATION,
             SPEED_AMP,
-            Y_DEATH
+            Y_DEATH,
+            SPARTAKIADA_ATTEMPTS,
+            SPARTAKIADA_MODE
         )
 
     private fun int(
@@ -79,5 +84,15 @@ object ConfigKeys {
         override val value = default
 
         override fun parse(input: String) = input.toDoubleOrNull()
+    }
+
+    private fun string(
+        path: String,
+        default: String,
+    ) = object : ConfigKey<String> {
+        override val path = path
+        override val value = default
+
+        override fun parse(input: String) = input
     }
 }

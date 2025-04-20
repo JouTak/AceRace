@@ -3,6 +3,7 @@ package com.joutak.acerace.utils
 import com.onarandombox.MultiverseCore.MultiverseCore
 import com.joutak.acerace.AceRacePlugin
 import org.bukkit.Bukkit
+import java.io.File
 import java.util.logging.Logger
 
 object PluginManager {
@@ -11,5 +12,9 @@ object PluginManager {
 
     fun getLogger(): Logger {
         return acerace.logger
+    }
+
+    fun getDataFolder(): File {
+        return acerace.dataFolder
     }
 }

@@ -5,6 +5,7 @@ import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GamePhase
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.utils.LobbyManager
+import com.joutak.acerace.utils.PluginManager
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -15,16 +16,20 @@ object PlayerQuitListener : Listener {
     fun onQuit(event: PlayerQuitEvent) {
         val player = event.player
         val playerData = PlayerData.get(player.uniqueId)
-        val lastGame = GameManager.get(playerData.games.lastOrNull())
+        val lastGame = GameManager.getByPlayer(player)
 
-        if (lastGame != null && lastGame.getPhase() != GamePhase.END) {
-            PlayerData.resetGame(player.uniqueId)
-        }
-
-        Bukkit.getScheduler().runTaskLater(AceRacePlugin.instance, Runnable {
-            LobbyManager.removePlayer(player)
-            playerData.saveData()
-            LobbyManager.check()
-        }, 5L)
+        Bukkit.getScheduler().runTaskLater(
+            PluginManager.acerace,
+            Runnable {
+                if (lastGame != null && lastGame.getPhase() != GamePhase.END) {
+                    PlayerData.resetPlayer(player.uniqueId)
+                    lastGame.checkPlayers()
+                }
+                LobbyManager.removeFromReadyPlayers(player)
+                playerData.save()
+                LobbyManager.check()
+            },
+            5L,
+        )
     }
 }

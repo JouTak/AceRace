@@ -3,10 +3,12 @@ package ru.joutak.blockparty.commands
 import com.joutak.acerace.commands.AceRaceCommand
 import com.joutak.acerace.config.ConfigKey
 import com.joutak.acerace.config.ConfigKeys
+import com.joutak.acerace.games.SpartakiadaManager
+import com.joutak.acerace.players.PlayerData
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceChangeConfigCommand : AceRaceCommand("config", listOf("key", "value")) {
+object AceRaceChangeConfigCommand : AceRaceCommand("config", listOf("key", "value"), "acerace.admin") {
     override fun execute(
         sender: CommandSender,
         command: Command,
@@ -51,6 +53,11 @@ object AceRaceChangeConfigCommand : AceRaceCommand("config", listOf("key", "valu
             @Suppress("UNCHECKED_CAST")
             com.joutak.acerace.config.Config.set(key as ConfigKey<Any>, value)
             sender.sendMessage("Значение ${key.path} обновлено на $value.")
+        }
+        
+        if (key.path.equals(ConfigKeys.SPARTAKIADA_MODE.path)) {
+            PlayerData.reloadDatas()
+            SpartakiadaManager.reload()
         }
 
         return true

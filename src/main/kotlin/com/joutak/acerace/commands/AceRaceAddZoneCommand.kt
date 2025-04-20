@@ -3,13 +3,12 @@ package com.joutak.acerace.commands
 import com.joutak.acerace.zones.ZoneFactory
 import com.joutak.acerace.zones.ZoneManager
 import com.joutak.acerace.zones.ZoneType
-import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 object AceRaceAddZoneCommand :
-    AceRaceCommand("addZone", listOf("type", "name", "x1", "y1", "z1", "x2", "y2", "z2")) {
+    AceRaceCommand("addZone", listOf("type", "name", "x1", "y1", "z1", "x2", "y2", "z2"), "acerace.admin") {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")

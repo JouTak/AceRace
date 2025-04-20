@@ -3,11 +3,12 @@ package com.joutak.acerace.checkpoints
 import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
+import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.players.PlayerData
-import com.joutak.acerace.players.PlayerState
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
+import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.title.Title
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -61,51 +62,62 @@ class Checkpoint(
     fun execute(player: Player) {
         if (player.gameMode != GameMode.ADVENTURE) return
 
-        val lastName = PlayerData.getLastCheck(playerUuid = player.uniqueId)
+        val playerData = PlayerData.get(player.uniqueId)
+
+        val lastName = playerData.getLastCheck()
+        val lastCheck = floor(playerData.getLastCheck().toDouble()).toInt()
 
         val checks = CheckpointManager.getCheckpoints().values.map { floor(it.name.toDouble()).toInt() }
         val maxcheck = checks.maxOrNull() ?: 0
-        val lastCheck = floor(PlayerData.getLastCheck(playerUuid = player.uniqueId).toDouble()).toInt()
-        val checkpoint = floor(name.toDouble()).toInt()
+
+        val curcheckpoint = floor(name.toDouble()).toInt()
 
         if ((lastName != name) && (floor(name.toDouble()).toInt() == floor(lastName.toDouble()).toInt())){
-            PlayerData.setLastCheck(playerUuid = player.uniqueId, name)
+            playerData.setLastCheck(name)
+            player.sendMessage("Вы успешно сменили чекпоинт!")
         }
 
-        if ((lastCheck == 0) and (PlayerData.getState(playerUuid = player.uniqueId) == PlayerState.INGAME)) {
-            PlayerData.setLapse(playerUuid = player.uniqueId, 1)
-            PlayerData.setLastCheck(playerUuid = player.uniqueId, name)
+        if ((lastCheck == 0) and (GameManager.isPlaying(player.uniqueId))) {
+            playerData.setLapse(1)
+            playerData.setLastCheck(name)
             Audience.audience(player).showTitle(Title.title(LinearComponents.linear(Component.text("1-й круг!")), LinearComponents.linear()))
         }
         else {
-            if (lastCheck == checkpoint - 1){
-                PlayerData.setLastCheck(playerUuid = player.uniqueId, name)
-                player.sendMessage("Вы достигли чекпоинта №" + (checkpoint - 1) + "!" + " (" + PlayerData.getLapse(playerUuid = player.uniqueId).toString() + "-й круг)")
+            if (lastCheck == curcheckpoint - 1){
+                playerData.setLastCheck(name)
+                player.sendMessage("Вы достигли чекпоинта №" + (curcheckpoint - 1) + "!" + " (" + playerData.getLapse().toString() + "-й круг)")
             }
-            else if ((checkpoint == 1) and ((lastCheck == maxcheck) or (lastCheck == 0))) {
-                if (PlayerData.getLapse(playerUuid = player.uniqueId) < Config.get(ConfigKeys.LAPSES_TO_FINISH)) {
-                    PlayerData.setLapse(
-                        playerUuid = player.uniqueId,
-                        PlayerData.getLapse(playerUuid = player.uniqueId) + 1
+            else if ((curcheckpoint == 1) and ((lastCheck == maxcheck) or (lastCheck == 0))) {
+                if (playerData.getLapse() < Config.get(ConfigKeys.LAPSES_TO_FINISH)) {
+                    playerData.setLapse(
+                        playerData.getLapse() + 1
                     )
                     Audience.audience(player).showTitle(
                         Title.title(
                             LinearComponents.linear(
                                 Component.text(
-                                    PlayerData.getLapse(playerUuid = player.uniqueId).toString() + "-й круг!"
+                                    playerData.getLapse().toString() + "-й круг!"
                                 )
-                            ), LinearComponents.linear()
+                            ), LinearComponents.linear(),
                         )
                     )
-                    PlayerData.setLastCheck(playerUuid = player.uniqueId, name)
+                    playerData.setLastCheck(name)
                 }
                 else {
-                    PlayerData.setState(playerUuid = player.uniqueId, PlayerState.FINISHED)
+                    PlayerData.get(player.uniqueId).setFinished(true)
                 }
             }
-//            else if (floor(lastName.toDouble()).toInt() != checkpoint){
-//                player.sendMessage("Вы пропустили чекпоинт!")
-//            }
+            else if (floor(lastName.toDouble()).toInt() != curcheckpoint){
+                Audience.audience(player).showTitle(
+                Title.title(
+                    LinearComponents.linear(
+                        Component.text(
+                            "Вы пропустили чекпоинт!", NamedTextColor.RED
+                        )
+                    ), LinearComponents.linear()
+                )
+            )
+            }
         }
     }
 

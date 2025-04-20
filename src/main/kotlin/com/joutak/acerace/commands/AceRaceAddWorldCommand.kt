@@ -5,7 +5,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-object AceRaceAddWorldCommand : AceRaceCommand("addWorld", listOf<String>("name")){
+object AceRaceAddWorldCommand : AceRaceCommand("addWorld", listOf("name"), "acerace.admin"){
 
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {

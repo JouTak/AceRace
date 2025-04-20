@@ -2,8 +2,10 @@ package com.joutak.acerace
 
 import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.commands.AceRaceCommandExecutor
+import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.listeners.*
-import com.joutak.acerace.worlds.World
+import com.joutak.acerace.players.PlayerData
+import com.joutak.acerace.utils.LobbyReadyBossBar
 import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
@@ -29,10 +31,11 @@ class AceRacePlugin : JavaPlugin() {
         // Plugin startup logic
         instance = this
 
+        loadData()
         loadConfig()
-        WorldManager.loadWorlds()
-        ZoneManager.loadZones()
-        CheckpointManager.loadCheckpoints()
+        SpartakiadaManager.watchParticipantsChanges()
+        LobbyReadyBossBar.removeAllBossBars()
+        LobbyReadyBossBar.checkLobby()
         registerEvents()
         registerCommands()
 
@@ -40,6 +43,12 @@ class AceRacePlugin : JavaPlugin() {
 
     }
 
+    private fun loadData() {
+        PlayerData.reloadDatas()
+        WorldManager.loadWorlds()
+        ZoneManager.loadZones()
+        CheckpointManager.loadCheckpoints()
+    }
 
     private fun registerEvents() {
         Bukkit.getPluginManager().registerEvents(PlayerJumpingOnBlockListener(), this)
@@ -51,6 +60,7 @@ class AceRacePlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlayerDropItemListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerInteractWithInventoryListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerGettingDamageListener, this)
+        Bukkit.getPluginManager().registerEvents(PlayerLoginListener, this)
     }
 
     private fun registerCommands() {
@@ -58,7 +68,11 @@ class AceRacePlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        // Plugin shutdown logic
+        // Plugin shutdown logic\
+        SpartakiadaManager.stopWatching()
+        for (player in Bukkit.getOnlinePlayers()) {
+            PlayerData.get(player.uniqueId).save()
+        }
         saveConfig()
         WorldManager.saveWorlds()
         ZoneManager.saveZones()

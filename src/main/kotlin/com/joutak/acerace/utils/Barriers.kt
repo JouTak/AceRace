@@ -1,6 +1,5 @@
 package com.joutak.acerace.utils
 
-import com.joutak.acerace.worlds.World
 import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneBarrier
 import com.joutak.acerace.zones.ZoneManager

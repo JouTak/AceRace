@@ -1,165 +1,142 @@
 package com.joutak.acerace.players
 
-import com.joutak.acerace.AceRacePlugin
-import com.joutak.acerace.worlds.World
+import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKeys
+import com.joutak.acerace.games.SpartakiadaManager
+import com.joutak.acerace.utils.LobbyManager
+import com.joutak.acerace.utils.PluginManager
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.util.Vector
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 data class PlayerData(
     val playerUuid: UUID,
-    var state: PlayerState,
-    var currentWorld: World?,
-    val games: MutableList<UUID> = mutableListOf<UUID>(),
-    var hasWon: Boolean = false,
-    var lapse: Int = 0,
-    var lastCheck: String = "0"
+    private val games: MutableList<UUID> = mutableListOf(),
 ) {
-    companion object {
-        val playerDatas = mutableMapOf<UUID, PlayerData>()
-        val dataFolder = File(AceRacePlugin.instance.dataFolder.path + "/players")
-
-        private fun create(playerUuid: UUID) : PlayerData {
-            playerDatas[playerUuid] = PlayerData(playerUuid, PlayerState.LOBBY, null)
-            return playerDatas[playerUuid]!!
-        }
-
-        fun get(playerUuid: UUID): PlayerData {
-            if (playerDatas.containsKey(playerUuid)) {
-                return playerDatas[playerUuid]!!
-            } else if (containsInFolder(playerUuid)) {
-                loadFromFile(playerUuid)
+    private val dataFolder: File by lazy {
+        val root =
+            if (Config.get(ConfigKeys.SPARTAKIADA_MODE)) {
+                SpartakiadaManager.spartakiadaFolder
             } else {
-                create(playerUuid)
+                PluginManager.acerace.dataFolder
             }
 
-            return playerDatas[playerUuid]!!
-        }
+        File(root, "players").apply { mkdirs() }
+    }
 
-        fun getLastCheck(playerUuid: UUID) : String {
-            val playerData = get(playerUuid)
+    companion object {
+        private val cache = ConcurrentHashMap<UUID, PlayerData>()
 
-            return playerData.lastCheck
-        }
+        fun get(uuid: UUID) = cache.getOrPut(uuid) { PlayerData(uuid) }
 
-        fun getLapse(playerUuid: UUID) : Int {
-            val playerData = get(playerUuid)
+        fun reloadDatas() = cache.clear()
 
-            return playerData.lapse
-        }
-
-        fun getState(playerUuid: UUID) : PlayerState {
-            val playerData = get(playerUuid)
-
-            return playerData.state
-        }
-
-        fun setLastCheck(playerUuid: UUID, value: String){
-            val playerData = get(playerUuid)
-
-            playerData.lastCheck = value
-        }
-
-        fun setLapse(playerUuid: UUID, value: Int){
-            val playerData = get(playerUuid)
-
-            playerData.lapse = value
-        }
-
-        fun setState(playerUuid: UUID, value: PlayerState){
-            val playerData = get(playerUuid)
-
-            playerData.state = value
-        }
-
-        fun resetGame(playerUuid: UUID) {
-            val playerData = get(playerUuid)
-
-            playerData.state = PlayerState.LOBBY
-            playerData.currentWorld = null
-
-            val player = Bukkit.getPlayer(playerData.playerUuid) ?: return
+        fun resetPlayer(playerUuid: UUID) {
+            val player = Bukkit.getPlayer(playerUuid) ?: return
             player.health = 20.0
             player.foodLevel = 20
             player.inventory.clear()
             player.level = 0
             player.exp = 0.0f
-            playerData.lapse = 0
-            playerData.lastCheck = "0"
+
+            val playerData = get(playerUuid)
+            playerData.setLapse(0)
+            playerData.setLastCheck("0")
+
         }
 
-        fun contains(playerUuid: UUID): Boolean {
-            return playerDatas.containsKey(playerUuid) || containsInFolder(playerUuid)
-        }
+    }
 
-        private fun containsInFolder(playerUuid: UUID): Boolean {
-            val files = dataFolder.listFiles() ?: return false
-            for (file in files) {
-                if (file.isFile && file.name.equals("$playerUuid.yml")) {
-                    return true
-                }
+    private var bestTime: Long = Long.MAX_VALUE
+    private var lapse: Int = 0
+    private var lastCheck: String = "0"
+    private var isReady: Boolean = false
+    private var isFinished: Boolean = false
+    private val file = File(dataFolder, "${this.playerUuid}.yml")
+    private val playerData: YamlConfiguration
+
+
+    init {
+        if (file.createNewFile()) {
+            playerData = YamlConfiguration()
+            playerData.set("nickname", Bukkit.getOfflinePlayer(playerUuid).name)
+            playerData.set("playerUuid", playerUuid.toString())
+            playerData.set("games", emptyList<String>())
+            playerData.set("bestTime", Long.MAX_VALUE)
+            playerData.save(file)
+        } else {
+            playerData = YamlConfiguration.loadConfiguration(file)
+            for (game in playerData.get("games") as List<String>) {
+                games.add(UUID.fromString(game))
             }
-            return false
-        }
-
-        private fun loadFromFile(playerUuid: UUID) {
-            val fx = File(dataFolder, "$playerUuid.yml")
-            if (!fx.exists()) {
-                throw FileNotFoundException()
-            }
-
-            val dataFile = YamlConfiguration.loadConfiguration(fx)
-
-            try {
-                playerDatas[playerUuid] = deserialize(dataFile.getValues(true))
-            } catch (e: Exception) {
-                AceRacePlugin.instance.getLogger().severe("Ошибка при загрузке информации о игроке: ${e.message}")
-            }
-        }
-
-        fun deserialize(values: Map<String, Any>): PlayerData {
-            AceRacePlugin.instance.getLogger().info("Десериализация информации об игроке ${values["playerUuid"]}")
-            val uuid = UUID.fromString(values["playerUuid"] as String)
-
-            playerDatas[uuid] = PlayerData(
-                uuid,
-                PlayerState.LOBBY,
-                null,
-                (values["games"] as MutableList<String>).map { UUID.fromString(it) }.toMutableList(),
-                values["hasWon"] as Boolean
-            )
-            return playerDatas[uuid]!!
+            bestTime = playerData.getLong("bestTime")
         }
     }
 
-    fun isInGame() : Boolean {
-        return currentWorld != null && (state == PlayerState.INGAME || state == PlayerState.FINISHED)
+    fun isInLobby(): Boolean =
+        Bukkit
+            .getPlayer(playerUuid)
+            ?.world
+            ?.name
+            .equals(LobbyManager.world.name)
+
+    fun getBestTime() : Long {
+        return bestTime
     }
 
-    fun saveData() {
-        val file = File(dataFolder, "${this.playerUuid}.yml")
-        val playerData = YamlConfiguration()
+    fun setBestTime(value: Long){
+        bestTime = minOf(value, getBestTime())
+        playerData.set("bestTime", bestTime)
+        playerData.save(file)
+    }
 
-        for ((path, value) in get(this.playerUuid).serialize()) {
-            playerData.set(path, value)
-        }
+    fun getLastCheck() : String {
+        return lastCheck
+    }
 
+    fun getLapse() : Int {
+        return lapse
+    }
+
+    fun setLastCheck(value: String){
+        lastCheck = value
+    }
+
+    fun setLapse( value: Int){
+        lapse = value
+    }
+
+    fun isReady(): Boolean = isReady
+
+    fun isFinished(): Boolean = isFinished
+
+    fun setFinished(finished: Boolean){
+        isFinished = finished
+    }
+
+    fun setReady(ready: Boolean) {
+        isReady = ready
+    }
+
+
+    fun addGame(gameUuid: UUID) {
+        games.add(gameUuid)
+        playerData.set("games", games.map { it.toString() })
+        playerData.save(file)
+    }
+
+    fun getGames(): List<UUID> = games
+
+    fun save() {
         try {
             playerData.save(file)
         } catch (e: IOException) {
-            AceRacePlugin.instance.getLogger().severe("Ошибка при сохранении информации о игроке: ${e.message}")
+            PluginManager.getLogger().severe("Ошибка при сохранении информации о игроке: ${e.message}")
+        } finally {
+            cache.remove(playerUuid)
         }
-    }
-
-    fun serialize(): Map<String, Any> {
-        return mapOf(
-            "playerUuid" to this.playerUuid.toString(),
-            "games" to this.games.map { it.toString() },
-            "hasWon" to this.hasWon
-        )
     }
 }

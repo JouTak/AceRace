@@ -15,9 +15,15 @@ import java.util.logging.Logger
 import java.util.logging.SimpleFormatter
 
 class GameLogger(val game: Game) {
-    companion object {
-        private val dataFolder = File(AceRacePlugin.instance.dataFolder.path, "games")
-        private val winnersFile = File(AceRacePlugin.instance.dataFolder.path, "winners.yml")
+    private val dataFolder: File by lazy {
+        val root =
+            if (Config.get(ConfigKeys.SPARTAKIADA_MODE)) {
+                SpartakiadaManager.spartakiadaFolder
+            } else {
+                PluginManager.acerace.dataFolder
+            }
+
+        File(root, "games").apply { mkdirs() }
     }
 
     private val logger = Logger.getLogger("GAME/${game.uuid}")
@@ -28,7 +34,6 @@ class GameLogger(val game: Game) {
 
     init {
         gameFolder.mkdirs()
-        winnersFile.createNewFile()
         resultFile.createNewFile()
         logFile.createNewFile()
 
@@ -73,9 +78,5 @@ class GameLogger(val game: Game) {
         }
 
 
-    }
-
-    fun addWinners(winners: Iterable<UUID>) {
-        winnersFile.appendText(winners.joinToString("\n"))
     }
 }

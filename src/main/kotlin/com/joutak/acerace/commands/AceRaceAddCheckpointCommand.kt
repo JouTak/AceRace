@@ -2,14 +2,13 @@ package com.joutak.acerace.commands
 
 import com.joutak.acerace.checkpoints.Checkpoint
 import com.joutak.acerace.checkpoints.CheckpointManager
-import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 
 object AceRaceAddCheckpointCommand :
-    AceRaceCommand("addCheckpoint", listOf("name", "x1", "y1", "z1", "x2", "y2", "z2", "yaw", "pitch")) {
+    AceRaceCommand("addCheckpoint", listOf("name", "x1", "y1", "z1", "x2", "y2", "z2", "yaw", "pitch"), "acerace.admin") {
     override fun execute(sender: CommandSender, command: Command, string: String, args: Array<out String>): Boolean {
         if (!sender.isOp) {
             sender.sendMessage("Недостаточно прав для использования данной команды.")
