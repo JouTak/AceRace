@@ -94,7 +94,7 @@ object WorldManager {
         try {
             worldsYaml.save(fx)
         } catch (e: IOException) {
-            AceRacePlugin.instance.getLogger().severe("Ошибка при сохранении зон: ${e.message}")
+            AceRacePlugin.instance.logger.severe("Ошибка при сохранении зон: ${e.message}")
         }
     }
 }

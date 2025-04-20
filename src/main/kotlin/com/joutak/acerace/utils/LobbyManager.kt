@@ -70,6 +70,9 @@ object LobbyManager {
         LobbyReadyBossBar.setFor(player)
         val audience = Audience.audience(player)
 
+        player.inventory.clear()
+        player.gameMode = GameMode.ADVENTURE
+
         val boots = ItemStack(Material.DIAMOND_BOOTS, 1)
         val metaBoots: ItemMeta = boots.itemMeta
         metaBoots.isUnbreakable = true

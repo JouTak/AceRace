@@ -5,3 +5,16 @@ api-version: '1.21.4'
 commands:
   ar:
     description: AceRace commands
+
+permissions:
+  acerace.admin:
+    default: op
+    description: Доступ ко всем командам плагина AceRace
+    children:
+      mv.bypass.gamemode.*: true
+  acerace.spectator:
+    default: op
+    description: Доступ к команде /ar spectate для наблюдения за играми
+    children:
+      mv.bypass.gamemode.*: true
+      minecraft.command.spectate: true

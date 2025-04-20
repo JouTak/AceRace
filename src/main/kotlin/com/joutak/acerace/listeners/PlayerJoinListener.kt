@@ -1,6 +1,5 @@
 package com.joutak.acerace.listeners
 
-import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.utils.LobbyManager
 import org.bukkit.event.EventHandler

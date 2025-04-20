@@ -18,7 +18,6 @@ import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
-import org.bukkit.OfflinePlayer
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -27,7 +26,6 @@ import org.bukkit.scoreboard.Scoreboard
 import org.bukkit.scoreboard.ScoreboardManager
 import org.bukkit.scoreboard.Team
 import java.util.*
-
 
 class Game(val world: World, private val players: MutableList<UUID>) : Runnable {
     val uuid: UUID = UUID.randomUUID()
@@ -41,6 +39,10 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     private val winners = mutableSetOf<UUID>()
     private var taskId: Int = -1
     private var startTime: Long = System.currentTimeMillis()
+
+    val manager: ScoreboardManager = Bukkit.getScoreboardManager()
+    val board: Scoreboard = manager.newScoreboard
+    val noCollisionTeam: Team = board.registerNewTeam("noCollisionTeam")
 
     companion object {
         val checkRemainingPlayers = {playerUuid : UUID -> if (Bukkit.getPlayer(playerUuid) == null) false
@@ -93,18 +95,17 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     private fun prep(){
-
-        val manager: ScoreboardManager = Bukkit.getScoreboardManager()
-        val board: Scoreboard = manager.newScoreboard
-        val noCollisionTeam: Team = board.registerNewTeam("noCollisionTeam")
+        //AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
         noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
-
-        AceRacePlugin.instance.logger.info(noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
+        //AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
 
         for (playerUuid in onlinePlayers){
+            //AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
             noCollisionTeam.addPlayer(Bukkit.getOfflinePlayer(playerUuid))
+            //AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
+
             val playerData = PlayerData.get(playerUuid)
-            
+
             playerData.setLapse(1)
             Bukkit.getPlayer(playerUuid)!!.inventory.clear()
 
@@ -122,7 +123,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             Bukkit.getPlayer(playerUuid)!!.inventory.addItem(trident)
         }
 
-        Barriers.setBarriers()
+        Barriers.setBarriers(world)
         phase = GamePhase.START
     }
 
@@ -161,7 +162,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             return
         }
 
-        Barriers.deleteBarriers()
+        Barriers.deleteBarriers(world)
         setTime(Config.get(ConfigKeys.TIME_TO_FINISH))
         phase = GamePhase.RACING
 
@@ -205,6 +206,8 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         }
         Bukkit.getScheduler().cancelTask(taskId)
         logger.saveGameResults()
+
+        noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
 
         world.reset()
         for (playerUuid in getAvailablePlayers()) {
@@ -289,6 +292,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             if (PlayerData.get(playerUuid).isFinished() && (playerData.getLapse() == Config.get(ConfigKeys.LAPSES_TO_FINISH))) {
                 val time = (System.currentTimeMillis() - startTime)/1000
                 playerData.setBestTime(System.currentTimeMillis() - startTime)
+                logger.info((System.currentTimeMillis() - startTime).toString())
                 Bukkit.getPlayer(playerUuid)!!.gameMode = GameMode.SPECTATOR
                 playerData.setLapse(0)
                 playerData.setLastCheck("0")
@@ -308,13 +312,15 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         spectators.add(player.uniqueId)
         PluginManager.multiverseCore.teleportPlayer(Bukkit.getConsoleSender(), player, Bukkit.getWorld(world.worldName)!!.spawnLocation)
         player.gameMode = GameMode.SPECTATOR
-        scoreboard.setFor(player)
-        scoreboard.setBossBarTimer(setOf(player.uniqueId), phase, timeLeft, totalTime)
+        LobbyReadyBossBar.removeFor(player)
+//        scoreboard.setFor(player)
+//        scoreboard.setBossBarTimer(setOf(player.uniqueId), phase, timeLeft, totalTime)
 
         player.sendMessage("Вы наблюдаете за игрой в мире ${world.worldName}.")
     }
 
     fun removeSpectator(player: Player) {
+        LobbyManager.teleportToLobby(player)
         spectators.remove(player.uniqueId)
         scoreboard.removeFor(player)
     }

@@ -72,7 +72,7 @@ data class PlayerData(
             for (game in playerData.get("games") as List<String>) {
                 games.add(UUID.fromString(game))
             }
-            bestTime = playerData.getLong("bestTime")
+            bestTime = playerData.getLong("bestTime", Long.MAX_VALUE)
         }
     }
 
