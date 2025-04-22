@@ -259,7 +259,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             onlinePlayers.remove(playerUuid)
         }
 
-        if (onlinePlayers.isEmpty()){
+        if (onlinePlayers.isEmpty() or getPlayers(checkRemainingPlayers).isEmpty()){
 
             Bukkit.getScheduler().cancelTask(taskId)
             logger.saveGameResults()
