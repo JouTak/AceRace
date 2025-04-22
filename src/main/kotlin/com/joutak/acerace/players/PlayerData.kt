@@ -88,6 +88,7 @@ data class PlayerData(
     }
 
     fun setBestTime(value: Long){
+        if (getBestTime().toInt() == 0) playerData.set("bestTime", value)
         bestTime = minOf(value, getBestTime())
         playerData.set("bestTime", bestTime)
         playerData.save(file)
