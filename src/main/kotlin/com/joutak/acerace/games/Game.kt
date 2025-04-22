@@ -201,6 +201,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
 
     private fun finish() {
         if (timeLeft > 0) {
+            checkPlayers()
             timeLeft--
             return
         }
@@ -258,11 +259,32 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             onlinePlayers.remove(playerUuid)
         }
 
-        if (getPlayers(checkRemainingPlayers).isEmpty()){
+        if (onlinePlayers.isEmpty()){
 
-            phase = GamePhase.END
-            setTime(Config.get(ConfigKeys.TIME_TO_END_GAME))
-            return
+            Bukkit.getScheduler().cancelTask(taskId)
+            logger.saveGameResults()
+
+            noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
+
+            world.reset()
+            for (playerUuid in getAvailablePlayers()) {
+                if (playerUuid in onlinePlayers) {
+                    PlayerData.resetPlayer(playerUuid)
+                }
+
+                Bukkit.getPlayer(playerUuid)?.let {
+                    scoreboard.removeFor(it)
+
+                    if (playerUuid in onlinePlayers) it.gameMode = GameMode.ADVENTURE
+                    LobbyManager.teleportToLobby(it)
+                }
+            }
+
+            logger.info("Игра завершилась")
+
+            GameManager.remove(uuid)
+            logger.close()
+            LobbyManager.check()
         }
 
         for (playerUuid in onlinePlayers){

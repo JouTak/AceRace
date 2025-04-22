@@ -11,6 +11,7 @@ import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
