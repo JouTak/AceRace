@@ -3,8 +3,6 @@ package com.joutak.acerace.listeners
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
-import com.joutak.acerace.utils.PluginManager
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -33,20 +31,5 @@ class PlayerJumpingOnBlockListener : Listener {
                 }
             }
         }
-//
-//        if (player.location.block.getRelative(BlockFace.DOWN).type == Material.LIME_CONCRETE) {
-//            player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_SMALL))
-//
-//        }
-//        if (player.location.block.getRelative(BlockFace.DOWN).type == Material.YELLOW_CONCRETE) {
-//            player.velocity = player.location.direction.multiply(Config.get(ConfigKeys.DIR_MP_MID))
-//            player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_MID))
-//
-//        }
-//        if (player.location.block.getRelative(BlockFace.DOWN).type == Material.RED_CONCRETE) {
-//            player.velocity = player.location.direction.multiply(Config.get(ConfigKeys.DIR_MP_BIG))
-//            player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_BIG))
-//
-//        }
     }
 }
