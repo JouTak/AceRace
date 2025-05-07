@@ -27,6 +27,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         registerCommand(AceRaceCheckpointInfoCommand)
         registerCommand(AceRaceWorldListCommand)
         registerCommand(AceRaceSpectateCommand)
+        registerCommand(AceRaceAddLeaderboardCommand)
     }
 
     private fun registerCommand(command : AceRaceCommand) {
