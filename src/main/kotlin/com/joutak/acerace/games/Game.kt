@@ -22,12 +22,12 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
-import org.bukkit.scoreboard.Scoreboard
-import org.bukkit.scoreboard.ScoreboardManager
-import org.bukkit.scoreboard.Team
-import java.util.*
+import java.util.UUID
 
-class Game(val world: World, private val players: MutableList<UUID>) : Runnable {
+class Game(
+    val world: World,
+    private val players: MutableList<UUID>,
+) : Runnable {
     val uuid: UUID = UUID.randomUUID()
     private val scoreboard: GameScoreboard = GameScoreboard()
     private var phase = GamePhase.PREP
@@ -40,13 +40,17 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     private var taskId: Int = -1
     private var startTime: Long = System.currentTimeMillis()
 
-    val manager: ScoreboardManager = Bukkit.getScoreboardManager()
-    val board: Scoreboard = manager.newScoreboard
-    val noCollisionTeam: Team = board.registerNewTeam("noCollisionTeam")
+    // val manager: ScoreboardManager = Bukkit.getScoreboardManager()
+    // val board: Scoreboard = manager.newScoreboard
+    // val noCollisionTeam: Team = board.registerNewTeam("noCollisionTeam")
 
     companion object {
-        val checkRemainingPlayers = {playerUuid : UUID -> if (Bukkit.getPlayer(playerUuid) == null) false
-        else GameManager.isPlaying(playerUuid) && Bukkit.getPlayer(playerUuid)!!.gameMode == GameMode.ADVENTURE
+        val checkRemainingPlayers = { playerUuid: UUID ->
+            if (Bukkit.getPlayer(playerUuid) == null) {
+                false
+            } else {
+                GameManager.isPlaying(playerUuid) && Bukkit.getPlayer(playerUuid)!!.gameMode == GameMode.ADVENTURE
+            }
         }
     }
 
@@ -72,37 +76,37 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         setTime(Config.get(ConfigKeys.TIME_TO_START_GAME))
         logger.info("Игра началась в составе из ${players.size} игроков:\n${players.joinToString("\n")}")
 
-        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-            AceRacePlugin.instance,
-            this,
-            0L,
-            20L
-        )
+        taskId =
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                AceRacePlugin.instance,
+                this,
+                0L,
+                20L,
+            )
     }
-
 
     override fun run() {
         scoreboard.update(getRemainingPlayers().count())
         scoreboard.setBossBarTimer(getAvailablePlayers(), phase, timeLeft, totalTime)
 
-        when (phase){
+        when (phase) {
             GamePhase.PREP -> prep()
             GamePhase.START -> startCountdown()
             GamePhase.RACING -> timer()
             GamePhase.END -> finish()
         }
-
     }
 
-    private fun prep(){
-        //AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
-        noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
-        //AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
+    private fun prep() {
+// AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
+// noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
+// AceRacePlugin.instance.logger.info("collision rule? " + noCollisionTeam.getOption(Team.Option.COLLISION_RULE).toString())
 
-        for (playerUuid in onlinePlayers){
-            //AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
-            noCollisionTeam.addPlayer(Bukkit.getOfflinePlayer(playerUuid))
-            //AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
+
+        for (playerUuid in onlinePlayers) {
+            // AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
+            // noCollisionTeam.addPlayer(Bukkit.getOfflinePlayer(playerUuid))
+            // AceRacePlugin.instance.logger.info("has player? " + noCollisionTeam.hasPlayer(Bukkit.getOfflinePlayer(playerUuid)).toString())
 
             val playerData = PlayerData.get(playerUuid)
 
@@ -128,34 +132,35 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     private fun startCountdown() {
-
         logger.info("$timeLeft секунд до начала игры!")
 
         Audience.audience(onlinePlayers.mapNotNull { Bukkit.getPlayer(it) }).showTitle(
             when (timeLeft) {
-                2 -> Title.title(
-                    LinearComponents.linear(
-                        Component.text("На старт!", NamedTextColor.RED)
-                    ),
-                    LinearComponents.linear()
-                )
-                1 -> Title.title(
-                    LinearComponents.linear(
-                        Component.text("Внимание!", NamedTextColor.RED)
-                    ),
-                    LinearComponents.linear()
-                )
-                0 -> Title.title(
-                    LinearComponents.linear(
-                        Component.text("Побежали!", NamedTextColor.RED)
-                    ),
-                    LinearComponents.linear()
-                )
+                2 ->
+                    Title.title(
+                        LinearComponents.linear(
+                            Component.text("На старт!", NamedTextColor.RED),
+                        ),
+                        LinearComponents.linear(),
+                    )
+                1 ->
+                    Title.title(
+                        LinearComponents.linear(
+                            Component.text("Внимание!", NamedTextColor.RED),
+                        ),
+                        LinearComponents.linear(),
+                    )
+                0 ->
+                    Title.title(
+                        LinearComponents.linear(
+                            Component.text("Побежали!", NamedTextColor.RED),
+                        ),
+                        LinearComponents.linear(),
+                    )
                 else ->
                     Title.title(LinearComponents.linear(), LinearComponents.linear())
-            }
+            },
         )
-
 
         if (timeLeft > 0) {
             timeLeft--
@@ -170,7 +175,6 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     private fun timer() {
-
         if (timeLeft > 0) {
             checkPlayers()
             timeLeft--
@@ -180,7 +184,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         setTime(Config.get(ConfigKeys.TIME_TO_END_GAME))
         phase = GamePhase.END
 
-        for (playerUuid in onlinePlayers){
+        for (playerUuid in onlinePlayers) {
             Bukkit.getPlayer(playerUuid)?.gameMode = GameMode.SPECTATOR
             if (!PlayerData.get(playerUuid).isFinished()) {
                 Bukkit.getPlayer(playerUuid)?.let {
@@ -188,15 +192,16 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
                         Title.title(
                             LinearComponents.linear(
                                 Component.text(
-                                    "Ты не успел финишировать :(", NamedTextColor.RED
-                                )
-                            ), LinearComponents.linear()
-                        )
+                                    "Ты не успел финишировать :(",
+                                    NamedTextColor.RED,
+                                ),
+                            ),
+                            LinearComponents.linear(),
+                        ),
                     )
                 }
             }
         }
-
     }
 
     private fun finish() {
@@ -208,7 +213,8 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         Bukkit.getScheduler().cancelTask(taskId)
         logger.saveGameResults()
 
-        noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
+// noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
+
 
         world.reset()
         for (playerUuid in getAvailablePlayers()) {
@@ -232,7 +238,8 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
     }
 
     private fun getPlayers(checker: (UUID) -> Boolean): List<UUID> {
-        return onlinePlayers.filter { playerUuid -> checker(playerUuid) } // .also { players -> PluginManager.getLogger().info(players.toString()) }
+        return onlinePlayers.filter { playerUuid -> checker(playerUuid) }
+        // .also { players -> PluginManager.getLogger().info(players.toString()) }
     }
 
     private fun setTime(time: Int) {
@@ -240,9 +247,7 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
         timeLeft = time - 1
     }
 
-    fun getPhase(): GamePhase {
-        return this.phase
-    }
+    fun getPhase(): GamePhase = this.phase
 
     fun checkPlayers() {
         for (playerUuid in onlinePlayers.filter {
@@ -259,12 +264,11 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             onlinePlayers.remove(playerUuid)
         }
 
-        if (onlinePlayers.isEmpty() or getPlayers(checkRemainingPlayers).isEmpty()){
-
+        if (onlinePlayers.isEmpty() or getPlayers(checkRemainingPlayers).isEmpty()) {
             Bukkit.getScheduler().cancelTask(taskId)
             logger.saveGameResults()
 
-            noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
+            // noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS)
 
             world.reset()
             for (playerUuid in getAvailablePlayers()) {
@@ -287,24 +291,23 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
             LobbyManager.check()
         }
 
-        for (playerUuid in onlinePlayers){
+        for (playerUuid in onlinePlayers) {
             val playerData = PlayerData.get(playerUuid)
 
-            if (playerData.getLapse() == 1){
+
+            if (playerData.getLapse() == 1) {
                 val item = ItemStack(Material.LEATHER_BOOTS, 1)
                 val metaBoots: ItemMeta = item.itemMeta
                 metaBoots.isUnbreakable = true
                 item.setItemMeta(metaBoots)
                 Bukkit.getPlayer(playerUuid)!!.inventory.boots = item
-            }
-            else if(playerData.getLapse() == 2){
+            } else if (playerData.getLapse() == 2) {
                 val item = ItemStack(Material.IRON_BOOTS, 1)
                 val metaBoots: ItemMeta = item.itemMeta
                 metaBoots.isUnbreakable = true
                 item.setItemMeta(metaBoots)
                 Bukkit.getPlayer(playerUuid)!!.inventory.boots = item
-            }
-            else if(playerData.getLapse() == 3){
+            } else if (playerData.getLapse() == 3) {
                 val item = ItemStack(Material.DIAMOND_BOOTS, 1)
                 val metaBoots: ItemMeta = item.itemMeta
                 metaBoots.isUnbreakable = true
@@ -312,16 +315,28 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
                 Bukkit.getPlayer(playerUuid)!!.inventory.boots = item
             }
             if (PlayerData.get(playerUuid).isFinished() && (playerData.getLapse() == Config.get(ConfigKeys.LAPSES_TO_FINISH))) {
-                val time = (System.currentTimeMillis() - startTime)/1000
+                val time = (System.currentTimeMillis() - startTime) / 1000
                 playerData.setBestTime(System.currentTimeMillis() - startTime)
                 logger.info((System.currentTimeMillis() - startTime).toString())
                 Bukkit.getPlayer(playerUuid)!!.gameMode = GameMode.SPECTATOR
                 playerData.setLapse(0)
                 playerData.setLastCheck("0")
                 PlayerData.get(playerUuid).setFinished(false)
-                Bukkit.getPlayer(playerUuid)?.let { Audience.audience(it).showTitle(Title.title(LinearComponents.linear(Component.text(
-                    "Ты финишировал за $time секунд(ы)!", NamedTextColor.GREEN
-                )), LinearComponents.linear(Component.text("Твое лучшее время: " + (playerData.getBestTime()/1000).toString() + " секунд(ы)")))) }
+                Bukkit.getPlayer(playerUuid)?.let {
+                    Audience.audience(it).showTitle(
+                        Title.title(
+                            LinearComponents.linear(
+                                Component.text(
+                                    "Ты финишировал за $time секунд(ы)!",
+                                    NamedTextColor.GREEN,
+                                ),
+                            ),
+                            LinearComponents.linear(
+                                Component.text("Твое лучшее время: " + (playerData.getBestTime() / 1000).toString() + " секунд(ы)"),
+                            ),
+                        ),
+                    )
+                }
                 Audience
                     .audience(
                         Bukkit.getServer().onlinePlayers,
@@ -364,11 +379,11 @@ class Game(val world: World, private val players: MutableList<UUID>) : Runnable 
 
     fun hasPlayer(playerUuid: UUID): Boolean = onlinePlayers.contains(playerUuid)
 
-    fun serialize(): Map<String, Any> {
-        return mapOf(
+
+    fun serialize(): Map<String, Any> =
+        mapOf(
             "gameUuid" to this.uuid.toString(),
             "players" to this.players.map { it.toString() },
-            "winners" to this.winners.map { it.toString() }
+            "winners" to this.winners.map { it.toString() },
         )
-    }
 }

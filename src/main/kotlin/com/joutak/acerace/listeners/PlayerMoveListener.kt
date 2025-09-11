@@ -4,21 +4,14 @@ import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
-import com.joutak.acerace.utils.PluginManager
-import com.joutak.acerace.worlds.World
-import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerMoveEvent
-import org.bukkit.scoreboard.Scoreboard
-import org.bukkit.scoreboard.ScoreboardManager
-import org.bukkit.scoreboard.Team
+
 
 class PlayerMoveListener : Listener {
     @EventHandler
@@ -27,6 +20,19 @@ class PlayerMoveListener : Listener {
         val location = event.player.location
 
         if (player.gameMode != GameMode.ADVENTURE) return
+
+        if (location.world.name.startsWith("AceRaceMap")){
+            for (p in Bukkit.getOnlinePlayers()) {
+                if (p in player.getNearbyEntities(2.0, 2.0, 2.0)){
+                    player.hidePlayer(p)
+                    p.hidePlayer(player)
+                }
+                else {
+                    player.showPlayer(p)
+                    p.showPlayer(player)
+                }
+            }
+        }
 
         if (location.world.name.startsWith("AceRaceMap") || location.world.name.startsWith("lobby") ){
 
