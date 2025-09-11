@@ -321,7 +321,6 @@ class Game(
                 Bukkit.getPlayer(playerUuid)!!.gameMode = GameMode.SPECTATOR
                 playerData.setLapse(0)
                 playerData.setLastCheck("0")
-                PlayerData.get(playerUuid).setFinished(false)
                 Bukkit.getPlayer(playerUuid)?.let {
                     Audience.audience(it).showTitle(
                         Title.title(
