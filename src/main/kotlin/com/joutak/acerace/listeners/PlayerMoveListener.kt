@@ -24,12 +24,11 @@ class PlayerMoveListener : Listener {
         if (location.world.name.startsWith("AceRaceMap")){
             for (p in Bukkit.getOnlinePlayers()) {
                 if (p in player.getNearbyEntities(2.0, 2.0, 2.0)){
+                    if (!player.isInWater) return
                     player.hidePlayer(p)
-                    p.hidePlayer(player)
                 }
                 else {
                     player.showPlayer(p)
-                    p.showPlayer(player)
                 }
             }
         }
