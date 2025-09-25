@@ -57,6 +57,7 @@ data class PlayerData(
     private var isFinished: Boolean = false
     private val file = File(dataFolder, "${this.playerUuid}.yml")
     private val playerData: YamlConfiguration
+    private var missedCheck: Boolean = false
 
 
     init {
@@ -122,6 +123,13 @@ data class PlayerData(
         isReady = ready
     }
 
+    fun missedCheck() : Boolean {
+        return missedCheck
+    }
+
+    fun setMissedCheck(value: Boolean){
+        missedCheck = value
+    }
 
     fun addGame(gameUuid: UUID) {
         games.add(gameUuid)

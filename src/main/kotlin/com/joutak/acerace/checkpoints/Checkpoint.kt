@@ -106,8 +106,11 @@ class Checkpoint(
                 else {
                     PlayerData.get(player.uniqueId).setFinished(true)
                 }
+                playerData.setMissedCheck(false)
             }
             else if (floor(lastName.toDouble()).toInt() != curcheckpoint){
+                if (playerData.missedCheck()) return
+                playerData.setMissedCheck(true)
                 Audience.audience(player).showTitle(
                 Title.title(
                     LinearComponents.linear(
