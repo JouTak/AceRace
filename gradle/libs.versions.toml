@@ -1,0 +1,16 @@
+[versions]
+kotlin = "2.2.0"
+jdk = "21"
+paper = "1.21.7-R0.1-SNAPSHOT"
+shadow = "9.1.0"
+multiverse = "4.3.14"
+
+
+[libraries]
+kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+multiverse = { module = "com.onarandombox.multiversecore:multiverse-core", version.ref = "multiverse" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

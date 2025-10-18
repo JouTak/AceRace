@@ -1,5 +1,6 @@
 package com.joutak.acerace.listeners
 
+import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
@@ -25,10 +26,10 @@ class PlayerMoveListener : Listener {
             for (p in Bukkit.getOnlinePlayers()) {
                 if (p in player.getNearbyEntities(2.0, 2.0, 2.0)){
                     if (!player.isInWater) return
-                    player.hidePlayer(p)
+                    player.hidePlayer(AceRacePlugin.instance, p)
                 }
                 else {
-                    player.showPlayer(p)
+                    player.showPlayer(AceRacePlugin.instance,p)
                 }
             }
         }

@@ -30,7 +30,7 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         registerCommand(AceRaceAddLeaderboardCommand)
     }
 
-    private fun registerCommand(command : AceRaceCommand) {
+    private fun registerCommand(command: AceRaceCommand) {
         commands[command.name] = command
     }
 
@@ -55,10 +55,10 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         sender: CommandSender,
         command: Command,
         string: String,
-        args: Array<out String>?,
+        args: Array<out String>,
     ): Boolean {
-        if (args?.getOrNull(0) in commands.keys &&
-            commands[args!![0]]!!.execute(
+        if (args.getOrNull(0) in commands.keys &&
+            commands[args[0]]!!.execute(
                 sender,
                 command,
                 string,
@@ -72,7 +72,12 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         return true
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: Array<String>
+    ): List<String> {
         return when (args.size) {
             1 -> commands.keys.toList()
             else -> {

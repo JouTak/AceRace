@@ -1,7 +1,16 @@
-name: AceRace
-version: '$version'
+name: ${NAME}
+version: ${VERSION}
+api-version: ${MINECRAFT_VERSION}
 main: com.joutak.acerace.AceRacePlugin
-api-version: '1.21.4'
+description: 'Plugin for AceRace minigame'
+authors: ['EnderDissa', 'Stunnerer', 's4dnex']
+contributors: ['technosimp']
+website: ${WEBSITE}
+
+depend: ['Multiverse-Core']
+libraries:
+  - 'org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}'
+
 commands:
   ar:
     description: AceRace commands

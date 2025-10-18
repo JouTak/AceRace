@@ -1,14 +1,13 @@
-group = "com.joutak"
-version = System.getProperty("version")
-val commitHash = System.getProperty("commitHash")
-if (commitHash.isNotBlank()) {
-    version = "$version-$commitHash"
-}
+val group: String by project
+val version: String by project
+val repo: String by project
 
-val targetJavaVersion = 17
+project.group = group
+project.version = version
+
 plugins {
-    kotlin("jvm") version "2.1.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.shadow)
 }
 
 repositories {
@@ -19,42 +18,73 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/") {
         name = "sonatype"
     }
-    maven("https://repo.onarandombox.com/content/groups/public/")
-}
-
-dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    compileOnly("com.onarandombox.multiversecore:multiverse-core:4.3.14")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
-}
-
-
-kotlin {
-    jvmToolchain(targetJavaVersion)
-}
-
-tasks.shadowJar {
-    archiveClassifier = ""
-    archiveFileName.set("${project.name}.jar")
-
-    val serverPath = System.getenv("SERVER_PATH")
-    if (System.getenv("TESTING") != null) {
-        if (serverPath != null) destinationDirectory.set(file("$serverPath\\plugins"))
-        else logger.warn("SERVER_PATH property is not set!")
+    maven("https://repo.onarandombox.com/content/groups/public/") {
+        name = "onarandombox"
     }
 }
 
+dependencies {
+    compileOnly(libs.kotlin)
+    compileOnly(libs.paper)
+    compileOnly(libs.multiverse)
+}
+
+kotlin {
+    jvmToolchain(
+        libs.versions.jdk
+            .get()
+            .toInt(),
+    )
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}
+
 tasks.jar {
-    finalizedBy("shadowJar")
     enabled = false
 }
 
 tasks.processResources {
-    val props = mapOf("version" to version, "pluginName" to project.name)
+    val minecraftVersion =
+        libs.versions.paper
+            .get()
+            .substringBefore("-")
+
+    val commitHash = project.findProperty("commitHash") as String?
+
+    val website =
+        if (repo.isBlank()) {
+            "https://joutak.ru"
+        } else {
+            if (commitHash.isNullOrBlank()) repo else "$repo/tree/$commitHash"
+        }
+
+    val props =
+        mapOf(
+            "NAME" to project.name,
+            "VERSION" to project.version,
+            "MINECRAFT_VERSION" to minecraftVersion,
+            "KOTLIN_VERSION" to libs.versions.kotlin.get(),
+            "WEBSITE" to website,
+        )
+
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
         expand(props)
+    }
+}
+
+tasks.shadowJar {
+    archiveFileName.set("${project.name}-${project.version}.jar")
+
+    if (System.getenv("TEST_PLUGIN_BUILD") != null) {
+        val serverPath = System.getenv("SERVER_PATH")
+        if (serverPath != null) {
+            destinationDirectory.set(file("$serverPath\\plugins"))
+        } else {
+            logger.warn("SERVER_PATH property is not set!")
+        }
     }
 }
