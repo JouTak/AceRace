@@ -26,21 +26,13 @@ class Checkpoint(
     val yaw: Float,
     val pitch: Float
 ) {
-    val x1: Double
-    val y1: Double
-    val z1: Double
-    val x2: Double
-    val y2: Double
-    val z2: Double
+    val x1: Double = minOf(x1, x2)
+    val y1: Double = minOf(y1, y2)
+    val z1: Double = minOf(z1, z2)
+    val x2: Double = maxOf(x1, x2)
+    val y2: Double = maxOf(y1, y2)
+    val z2: Double = maxOf(z1, z2)
 
-    init {
-        this.x1 = minOf(x1, x2)
-        this.x2 = maxOf(x1, x2)
-        this.y1 = minOf(y1, y2)
-        this.y2 = maxOf(y1, y2)
-        this.z1 = minOf(z1, z2)
-        this.z2 = maxOf(z1, z2)
-    }
     companion object {
         fun deserialize(values: Map<String, Any>): Checkpoint {
             AceRacePlugin.instance.logger.info("Десериализация информации о чекпоинте ${values["name"]}")
@@ -64,54 +56,19 @@ class Checkpoint(
 
         val playerData = PlayerData.get(player.uniqueId)
 
+        val curCheck = floor(name.toDouble()).toInt()
+
         val lastName = playerData.getLastCheck()
-        val lastCheck = floor(playerData.getLastCheck().toDouble()).toInt()
+        val lastCheck = floor(lastName.toDouble()).toInt()
 
         val checks = CheckpointManager.getCheckpoints().values.map { floor(it.name.toDouble()).toInt() }
-        val maxcheck = checks.maxOrNull() ?: 0
+        val maxCheck = checks.maxOrNull() ?: 0
 
-        val curcheckpoint = floor(name.toDouble()).toInt()
-
-        if ((lastName != name) && (floor(name.toDouble()).toInt() == floor(lastName.toDouble()).toInt())){
-            playerData.setLastCheck(name)
-            player.sendMessage("Вы успешно сменили чекпоинт!")
-        }
-
-        if ((lastCheck == 0) and (GameManager.isPlaying(player.uniqueId))) {
-            playerData.setLapse(1)
-            playerData.setLastCheck(name)
-            Audience.audience(player).showTitle(Title.title(LinearComponents.linear(Component.text("1-й круг!")), LinearComponents.linear()))
-        }
-        else {
-            if (lastCheck == curcheckpoint - 1){
-                playerData.setLastCheck(name)
-                player.sendMessage("Вы достигли чекпоинта №" + (curcheckpoint - 1) + "!" + " (" + playerData.getLapse().toString() + "-й круг)")
-            }
-            else if ((curcheckpoint == 1) and ((lastCheck == maxcheck) or (lastCheck == 0))) {
-                if (playerData.getLapse() < Config.get(ConfigKeys.LAPSES_TO_FINISH)) {
-                    playerData.setLapse(
-                        playerData.getLapse() + 1
-                    )
-                    Audience.audience(player).showTitle(
-                        Title.title(
-                            LinearComponents.linear(
-                                Component.text(
-                                    playerData.getLapse().toString() + "-й круг!"
-                                )
-                            ), LinearComponents.linear(),
-                        )
-                    )
-                    playerData.setLastCheck(name)
-                }
-                else {
-                    PlayerData.get(player.uniqueId).setFinished(true)
-                }
-                playerData.setMissedCheck(false)
-            }
-            else if (floor(lastName.toDouble()).toInt() != curcheckpoint){
-                if (playerData.missedCheck()) return
-                playerData.setMissedCheck(true)
-                Audience.audience(player).showTitle(
+        // Miss check
+        if ((((lastCheck + 1) % maxCheck) + 1) != curCheck) {
+            if (playerData.missedCheck()) return
+            playerData.setMissedCheck(true)
+            Audience.audience(player).showTitle(
                 Title.title(
                     LinearComponents.linear(
                         Component.text(
@@ -120,14 +77,65 @@ class Checkpoint(
                     ), LinearComponents.linear()
                 )
             )
+            return
+        }
+
+        playerData.setMissedCheck(false)
+
+        // Next check (w/o new lap)
+        if (lastCheck + 1 == curCheck) {
+            playerData.setLastCheck(name)
+            player.sendMessage(
+                "Вы достигли чекпоинта №" + (curCheck - 1) + "!" + " (" + playerData.getLapse()
+                    .toString() + "-й круг)"
+            )
+            return
+        }
+
+        // New lap
+        if (curCheck == 1 && lastCheck == maxCheck) {
+            if (playerData.getLapse() < Config.get(ConfigKeys.LAPSES_TO_FINISH)) {
+                playerData.setLapse(
+                    playerData.getLapse() + 1
+                )
+                Audience.audience(player).showTitle(
+                    Title.title(
+                        LinearComponents.linear(
+                            Component.text(
+                                playerData.getLapse().toString() + "-й круг!"
+                            )
+                        ),
+                        LinearComponents.linear(),
+                    )
+                )
+                playerData.setLastCheck(name)
+            } else {
+                PlayerData.get(player.uniqueId).setFinished(true)
             }
+            return
+        }
+
+        // Change check
+        if ((lastName != name) && (curCheck == lastCheck)) {
+            playerData.setLastCheck(name)
+            player.sendMessage("Вы успешно сменили чекпоинт!")
+            return
+        }
+
+        // Start
+        if ((lastCheck == 0) && (GameManager.isPlaying(player.uniqueId))) {
+            playerData.setLapse(1)
+            playerData.setLastCheck(name)
+            Audience.audience(player)
+                .showTitle(Title.title(LinearComponents.linear(Component.text("1-й круг!")), LinearComponents.linear()))
+            return
         }
     }
 
     fun isInside(playerLoc: Location): Boolean {
-        return playerLoc.x in this.x1..this.x2&&
-                playerLoc.y in this.y1 ..this.y2 &&
-                playerLoc.z in this.z1 ..this.z2
+        return playerLoc.x in this.x1..this.x2 &&
+                playerLoc.y in this.y1..this.y2 &&
+                playerLoc.z in this.z1..this.z2
     }
 
     fun serialize(): Map<String, Any> {
