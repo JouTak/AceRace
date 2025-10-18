@@ -65,7 +65,7 @@ class Checkpoint(
         val maxCheck = checks.maxOrNull() ?: 0
 
         // Miss check
-        if ((((lastCheck + 1) % maxCheck) + 1) != curCheck) {
+        if (lastCheck % maxCheck != curCheck - 1 && lastCheck != curCheck) {
             if (playerData.missedCheck()) return
             playerData.setMissedCheck(true)
             Audience.audience(player).showTitle(
@@ -86,8 +86,7 @@ class Checkpoint(
         if (lastCheck + 1 == curCheck) {
             playerData.setLastCheck(name)
             player.sendMessage(
-                "Вы достигли чекпоинта №" + (curCheck - 1) + "!" + " (" + playerData.getLapse()
-                    .toString() + "-й круг)"
+                "Вы достигли чекпоинта №$curCheck! (${playerData.getLapse()}-й круг)"
             )
             return
         }
@@ -102,7 +101,7 @@ class Checkpoint(
                     Title.title(
                         LinearComponents.linear(
                             Component.text(
-                                playerData.getLapse().toString() + "-й круг!"
+                                 "${playerData.getLapse()}-й круг!"
                             )
                         ),
                         LinearComponents.linear(),
@@ -123,7 +122,7 @@ class Checkpoint(
         }
 
         // Start
-        if ((lastCheck == 0) && (GameManager.isPlaying(player.uniqueId))) {
+        if ((lastCheck == 0) && (GameManager.isPlaying(player.uniqueId)) && curCheck == 1) {
             playerData.setLapse(1)
             playerData.setLastCheck(name)
             Audience.audience(player)
