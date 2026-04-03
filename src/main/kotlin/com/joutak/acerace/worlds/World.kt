@@ -34,12 +34,18 @@ data class World(
         val world = Bukkit.getWorld(worldName)!!
         val mvWorld = PluginManager.multiverseCore.mvWorldManager.getMVWorld(worldName)
 
-        mvWorld.setTime("midnight")
-        mvWorld.setEnableWeather(false)
-        mvWorld.setDifficulty(Difficulty.PEACEFUL)
-        mvWorld.setGameMode(GameMode.ADVENTURE)
-        mvWorld.setPVPMode(false)
-        mvWorld.hunger = false
+        if (mvWorld == null) {
+            AceRacePlugin.instance.logger.warning(
+                "Мир $worldName не найден в Multiverse-Core. Настройки Multiverse для арены не применены.",
+            )
+        } else {
+            mvWorld.setTime("midnight")
+            mvWorld.setEnableWeather(false)
+            mvWorld.setDifficulty(Difficulty.PEACEFUL)
+            mvWorld.setGameMode(GameMode.ADVENTURE)
+            mvWorld.setPVPMode(false)
+            mvWorld.hunger = false
+        }
 
         world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true)
         world.setGameRule(GameRule.FALL_DAMAGE, false)

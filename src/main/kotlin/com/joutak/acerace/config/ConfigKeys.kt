@@ -27,6 +27,7 @@ object ConfigKeys {
 
     val all =
         setOf(
+            LOBBY_WORLD_NAME,
             LOG_INFO_TO_CONSOLE,
             MAX_PLAYERS_IN_GAME,
             PLAYERS_TO_START,
