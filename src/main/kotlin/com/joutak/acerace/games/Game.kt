@@ -55,6 +55,7 @@ class Game(
         LobbyReadyBossBar.removeAllBossBars()
         world.setState(WorldState.INGAME)
         phase = GamePhase.PREP
+        val worldSpawnLocation = getWorldSpawnLocation()
 
         for (playerUuid in players) {
             val playerData = PlayerData.get(playerUuid)
@@ -64,7 +65,7 @@ class Game(
                 PluginManager.multiverseCore.teleportPlayer(
                     Bukkit.getConsoleSender(),
                     it,
-                    Bukkit.getWorld(world.worldName)!!.spawnLocation
+                    worldSpawnLocation,
                 )
                 LobbyManager.removeFromReadyPlayers(it)
                 it.gameMode = GameMode.ADVENTURE
@@ -340,7 +341,7 @@ class Game(
         PluginManager.multiverseCore.teleportPlayer(
             Bukkit.getConsoleSender(),
             player,
-            Bukkit.getWorld(world.worldName)!!.spawnLocation
+            getWorldSpawnLocation(),
         )
         player.gameMode = GameMode.SPECTATOR
         LobbyReadyBossBar.removeFor(player)
@@ -353,6 +354,10 @@ class Game(
         spectators.remove(player.uniqueId)
         scoreboard.removeFor(player)
     }
+
+    private fun getWorldSpawnLocation() =
+        PluginManager.multiverseCore.mvWorldManager.getMVWorld(world.worldName)?.spawnLocation
+            ?: Bukkit.getWorld(world.worldName)!!.spawnLocation
 
     private fun getRemainingPlayers(): Iterable<UUID> =
         onlinePlayers.filter {
