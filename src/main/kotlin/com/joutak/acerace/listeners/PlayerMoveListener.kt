@@ -13,56 +13,53 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerMoveEvent
 
-
 class PlayerMoveListener : Listener {
     @EventHandler
-    fun playerMoveEvent(event : PlayerMoveEvent) {
+    fun playerMoveEvent(event: PlayerMoveEvent) {
         val player = event.player
-        val location = event.player.location
+        val location = player.location
+        val worldName = location.world.name.lowercase()
 
         if (player.gameMode != GameMode.ADVENTURE) return
 
-        if (location.world.name.startsWith("AceRaceMap")){
+        if (worldName.startsWith("aceracemap")) {
             for (p in Bukkit.getOnlinePlayers()) {
-                if (p in player.getNearbyEntities(2.0, 2.0, 2.0)){
+                if (p in player.getNearbyEntities(2.0, 2.0, 2.0)) {
                     if (!player.isInWater) return
                     player.hidePlayer(AceRacePlugin.instance, p)
-                }
-                else {
-                    player.showPlayer(AceRacePlugin.instance,p)
+                } else {
+                    player.showPlayer(AceRacePlugin.instance, p)
                 }
             }
         }
 
-        if (location.world.name.startsWith("AceRaceMap") || location.world.name.startsWith("lobby") ){
-
+        if (worldName.startsWith("aceracemap") || worldName.startsWith("lobby")) {
             for (zone in ZoneManager.getZones().values) {
                 if (zone.isInside(location)) {
+                    AceRacePlugin.instance.logger.info("Игрок ${player.name} вошел в зону ${zone.name} (${zone.type})")
                     zone.execute(player)
                 }
             }
 
-            for (checkpoint in CheckpointManager.getCheckpoints().values){
-                if (checkpoint.isInside(location)){
+            for (checkpoint in CheckpointManager.getCheckpoints().values) {
+                if (checkpoint.isInside(location)) {
                     checkpoint.execute(player)
                 }
             }
 
             if (player.y <= Config.get(ConfigKeys.Y_DEATH)) {
                 val playerData = PlayerData.get(player.uniqueId)
-                val x1 = CheckpointManager.get(playerData.getLastCheck()).x1
-                val x2 = CheckpointManager.get(playerData.getLastCheck()).x2
-                val y1 = CheckpointManager.get(playerData.getLastCheck()).y1
-                val y2 = CheckpointManager.get(playerData.getLastCheck()).y2
-                val z1 = CheckpointManager.get(playerData.getLastCheck()).z1
-                val z2 = CheckpointManager.get(playerData.getLastCheck()).z2
-                val yaw = CheckpointManager.get(playerData.getLastCheck()).yaw
-                val pitch = CheckpointManager.get(playerData.getLastCheck()).pitch
-
-                val loc = Location(location.world, (x1+x2)/2, (y1+y2)/2, (z1+z2)/2, yaw, pitch)
+                val checkpoint = CheckpointManager.get(playerData.getLastCheck())
+                val loc = Location(
+                    location.world,
+                    (checkpoint.x1 + checkpoint.x2) / 2,
+                    (checkpoint.y1 + checkpoint.y2) / 2,
+                    (checkpoint.z1 + checkpoint.z2) / 2,
+                    checkpoint.yaw,
+                    checkpoint.pitch,
+                )
                 player.teleport(loc)
             }
-            if (!player.isGliding) player.inventory.chestplate = null;
         }
     }
 }

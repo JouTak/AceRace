@@ -45,18 +45,23 @@ object ZoneManager {
         }
 
         zonesFile = YamlConfiguration.loadConfiguration(fx)
-        val zonesList = zonesFile.getList("zones") as? List<Map<String, Any>> ?: return
+        val zonesList = zonesFile.getMapList("zones")
 
         clear()
 
         for (value in zonesList) {
             try {
-                add(Zone.deserialize(value)!!)
+                val normalizedValue = value.entries.associate { (key, entryValue) ->
+                    key.toString() to (entryValue ?: throw IllegalArgumentException("Пустое значение в zones.yml"))
+                }
+                add(Zone.deserialize(normalizedValue)!!)
             } catch (e: Exception) {
                 AceRacePlugin.instance.logger.severe("Ошибка при загрузке зон: ${e.message}")
                 break
             }
         }
+
+        AceRacePlugin.instance.logger.info("Загружено зон: ${zones.size}")
     }
 
     fun saveZones() {
