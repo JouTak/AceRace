@@ -2,6 +2,9 @@ package com.joutak.acerace.config
 
 object ConfigKeys {
     val LOBBY_WORLD_NAME = string("LOBBY_WORLD_NAME", "lobby")
+    val ARENA_TEMPLATE_WORLD_NAME = string("ARENA_TEMPLATE_WORLD_NAME", "AceRaceTemplate")
+    val ARENA_RUNTIME_PREFIX = string("ARENA_RUNTIME_PREFIX", "AceRaceMap")
+    val ARENA_POOL_SIZE = int("ARENA_POOL_SIZE", 3)
     val LOG_INFO_TO_CONSOLE = boolean("LOG_INFO_TO_CONSOLE", true)
     val MAX_PLAYERS_IN_GAME = int("MAX_PLAYERS_IN_GAME", 8)
     val PLAYERS_TO_START = int("PLAYERS_TO_START", 4)
@@ -27,6 +30,10 @@ object ConfigKeys {
 
     val all =
         setOf(
+            LOBBY_WORLD_NAME,
+            ARENA_TEMPLATE_WORLD_NAME,
+            ARENA_RUNTIME_PREFIX,
+            ARENA_POOL_SIZE,
             LOG_INFO_TO_CONSOLE,
             MAX_PLAYERS_IN_GAME,
             PLAYERS_TO_START,
