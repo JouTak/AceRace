@@ -1,12 +1,12 @@
 package com.joutak.acerace
 
+import com.joutak.acerace.arenas.ArenaManager
 import com.joutak.acerace.checkpoints.CheckpointManager
 import com.joutak.acerace.commands.AceRaceCommandExecutor
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.listeners.*
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.utils.LobbyReadyBossBar
-import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
@@ -20,6 +20,7 @@ class AceRacePlugin : JavaPlugin() {
     }
 
     private var customConfig = YamlConfiguration()
+
     private fun loadConfig() {
         val fx = File(dataFolder, "config.yml")
         if (!fx.exists()) {
@@ -28,7 +29,6 @@ class AceRacePlugin : JavaPlugin() {
     }
 
     override fun onEnable() {
-        // Plugin startup logic
         instance = this
 
         loadData()
@@ -40,12 +40,11 @@ class AceRacePlugin : JavaPlugin() {
         registerCommands()
 
         logger.info("AceRace plugin version ${pluginMeta.version} enabled!")
-
     }
 
     private fun loadData() {
         PlayerData.reloadDatas()
-        WorldManager.loadWorlds()
+        ArenaManager.init()
         ZoneManager.loadZones()
         CheckpointManager.loadCheckpoints()
     }
@@ -68,13 +67,12 @@ class AceRacePlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        // Plugin shutdown logic\
         SpartakiadaManager.stopWatching()
         for (player in Bukkit.getOnlinePlayers()) {
             PlayerData.get(player.uniqueId).save()
         }
         saveConfig()
-        WorldManager.saveWorlds()
+        ArenaManager.shutdown()
         ZoneManager.saveZones()
         CheckpointManager.saveCheckpoints()
         logger.info("AceRace plugin version ${pluginMeta.version} disabled!")

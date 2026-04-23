@@ -20,7 +20,6 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
         registerCommand(AceRaceRemoveZoneCommand)
         registerCommand(AceRaceChangeConfigCommand)
         registerCommand(AceRaceReadyCommand)
-        registerCommand(AceRaceAddWorldCommand)
         registerCommand(AceRaceAddCheckpointCommand)
         registerCommand(AceRaceRemoveCheckpointCommand)
         registerCommand(AceRaceCheckpointListCommand)

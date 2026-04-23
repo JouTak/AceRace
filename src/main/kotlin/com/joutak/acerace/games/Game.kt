@@ -1,6 +1,9 @@
 package com.joutak.acerace.games
 
 import com.joutak.acerace.AceRacePlugin
+import com.joutak.acerace.arenas.Arena
+import com.joutak.acerace.arenas.ArenaManager
+import com.joutak.acerace.arenas.ArenaState
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
@@ -8,8 +11,6 @@ import com.joutak.acerace.utils.Barriers
 import com.joutak.acerace.utils.LobbyManager
 import com.joutak.acerace.utils.LobbyReadyBossBar
 import com.joutak.acerace.utils.PluginManager
-import com.joutak.acerace.worlds.World
-import com.joutak.acerace.worlds.WorldState
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
@@ -25,7 +26,7 @@ import org.bukkit.inventory.meta.ItemMeta
 import java.util.UUID
 
 class Game(
-    val world: World,
+    val arena: Arena,
     private val players: MutableList<UUID>,
 ) : Runnable {
     val uuid: UUID = UUID.randomUUID()
@@ -51,10 +52,8 @@ class Game(
     }
 
     fun start() {
-        world.reset()
+        arena.setState(ArenaState.INGAME)
         LobbyReadyBossBar.removeAllBossBars()
-        world.setState(WorldState.INGAME)
-        phase = GamePhase.PREP
 
         for (playerUuid in players) {
             val playerData = PlayerData.get(playerUuid)
@@ -64,7 +63,7 @@ class Game(
                 PluginManager.multiverseCore.teleportPlayer(
                     Bukkit.getConsoleSender(),
                     it,
-                    Bukkit.getWorld(world.worldName)!!.spawnLocation
+                    Bukkit.getWorld(arena.worldName)!!.spawnLocation
                 )
                 LobbyManager.removeFromReadyPlayers(it)
                 it.gameMode = GameMode.ADVENTURE
@@ -118,7 +117,7 @@ class Game(
             Bukkit.getPlayer(playerUuid)!!.inventory.addItem(trident)
         }
 
-        Barriers.setBarriers(world)
+        Barriers.setBarriers(arena)
         phase = GamePhase.START
     }
 
@@ -161,7 +160,7 @@ class Game(
             return
         }
 
-        Barriers.deleteBarriers(world)
+        Barriers.deleteBarriers(arena)
         setTime(Config.get(ConfigKeys.TIME_TO_FINISH))
         phase = GamePhase.RACING
 
@@ -204,40 +203,9 @@ class Game(
             timeLeft--
             return
         }
-        Bukkit.getScheduler().cancelTask(taskId)
-        logger.saveGameResults()
 
-        world.reset()
-        for (playerUuid in getAvailablePlayers()) {
-            if (playerUuid in onlinePlayers) {
-                PlayerData.resetPlayer(playerUuid)
-            }
-
-            Bukkit.getPlayer(playerUuid)?.let {
-                scoreboard.removeFor(it)
-
-                if (playerUuid in onlinePlayers) it.gameMode = GameMode.ADVENTURE
-                LobbyManager.teleportToLobby(it)
-            }
-        }
-
-        logger.info("Игра завершилась")
-
-        GameManager.remove(uuid)
-        logger.close()
-        LobbyManager.check()
+        stopGame()
     }
-
-    private fun getPlayers(checker: (UUID) -> Boolean): List<UUID> {
-        return onlinePlayers.filter { playerUuid -> checker(playerUuid) }
-    }
-
-    private fun setTime(time: Int) {
-        totalTime = time
-        timeLeft = time - 1
-    }
-
-    fun getPhase(): GamePhase = this.phase
 
     fun checkPlayers() {
         for (playerUuid in onlinePlayers.filter {
@@ -245,7 +213,7 @@ class Game(
                 .getPlayer(it)
                 ?.world
                 ?.name
-                .equals(world.worldName)
+                .equals(arena.worldName)
         }) {
             logger.info("Игрок $playerUuid вышел из игры!")
             Bukkit.getPlayer(playerUuid)?.let {
@@ -255,33 +223,12 @@ class Game(
         }
 
         if (onlinePlayers.isEmpty() || getPlayers(checkRemainingPlayers).isEmpty()) {
-            Bukkit.getScheduler().cancelTask(taskId)
-            logger.saveGameResults()
-
-            world.reset()
-            for (playerUuid in getAvailablePlayers()) {
-                if (playerUuid in onlinePlayers) {
-                    PlayerData.resetPlayer(playerUuid)
-                }
-
-                Bukkit.getPlayer(playerUuid)?.let {
-                    scoreboard.removeFor(it)
-
-                    if (playerUuid in onlinePlayers) it.gameMode = GameMode.ADVENTURE
-                    LobbyManager.teleportToLobby(it)
-                }
-            }
-
-            logger.info("Игра завершилась")
-
-            GameManager.remove(uuid)
-            logger.close()
-            LobbyManager.check()
+            stopGame()
+            return
         }
 
         for (playerUuid in onlinePlayers) {
             val playerData = PlayerData.get(playerUuid)
-
 
             if (playerData.getLapse() == 1) {
                 val item = ItemStack(Material.LEATHER_BOOTS, 1)
@@ -335,17 +282,60 @@ class Game(
         }
     }
 
+    private fun stopGame() {
+        if (taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId)
+            taskId = -1
+        }
+
+        logger.saveGameResults()
+
+        for (playerUuid in getAvailablePlayers()) {
+            if (playerUuid in onlinePlayers) {
+                PlayerData.resetPlayer(playerUuid)
+            }
+
+            Bukkit.getPlayer(playerUuid)?.let {
+                scoreboard.removeFor(it)
+
+                if (playerUuid in onlinePlayers) {
+                    it.gameMode = GameMode.ADVENTURE
+                }
+                LobbyManager.teleportToLobby(it)
+            }
+        }
+
+        logger.info("Игра завершилась")
+
+        arena.setState(ArenaState.RESETTING)
+        GameManager.remove(uuid)
+        logger.close()
+        ArenaManager.recycle(arena)
+        LobbyManager.check()
+    }
+
+    private fun getPlayers(checker: (UUID) -> Boolean): List<UUID> {
+        return onlinePlayers.filter { playerUuid -> checker(playerUuid) }
+    }
+
+    private fun setTime(time: Int) {
+        totalTime = time
+        timeLeft = time - 1
+    }
+
+    fun getPhase(): GamePhase = this.phase
+
     fun addSpectator(player: Player) {
         spectators.add(player.uniqueId)
         PluginManager.multiverseCore.teleportPlayer(
             Bukkit.getConsoleSender(),
             player,
-            Bukkit.getWorld(world.worldName)!!.spawnLocation
+            Bukkit.getWorld(arena.worldName)!!.spawnLocation
         )
         player.gameMode = GameMode.SPECTATOR
         LobbyReadyBossBar.removeFor(player)
 
-        player.sendMessage("Вы наблюдаете за игрой в мире ${world.worldName}.")
+        player.sendMessage("Вы наблюдаете за игрой в мире ${arena.worldName}.")
     }
 
     fun removeSpectator(player: Player) {
@@ -370,7 +360,6 @@ class Game(
     fun hasPlayer(player: Player): Boolean = hasPlayer(player.uniqueId)
 
     fun hasPlayer(playerUuid: UUID): Boolean = onlinePlayers.contains(playerUuid)
-
 
     fun serialize(): Map<String, Any> =
         mapOf(
