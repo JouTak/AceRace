@@ -1,12 +1,12 @@
 package com.joutak.acerace.utils
 
+import com.joutak.acerace.arenas.ArenaManager
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GameScoreboard
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.players.PlayerData
-import com.joutak.acerace.worlds.WorldManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
@@ -18,7 +18,9 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
-import java.util.*
+import org.mvplugins.multiverse.core.MultiverseCore
+import org.mvplugins.multiverse.core.MultiverseCoreApi
+import java.util.UUID
 import kotlin.math.min
 
 object LobbyManager {
@@ -29,8 +31,17 @@ object LobbyManager {
         Config.get(
             ConfigKeys.TIME_TO_START_GAME_LOBBY,
         )
+    private lateinit var multiverseCore: MultiverseCore
 
     init {
+        val mv = Bukkit.getPluginManager().getPlugin("Multiverse-Core") as? MultiverseCore
+        if (mv == null) {
+            PluginManager.getLogger().severe("Multiverse-Core не найден! Лобби не сможет работать корректно.")
+        } else {
+            multiverseCore = mv
+        }
+
+
         val configuredLobbyWorldName = Config.get(ConfigKeys.LOBBY_WORLD_NAME)
         val loadedLobbyWorld = Bukkit.getWorld(configuredLobbyWorldName) ?: Bukkit.createWorld(WorldCreator(configuredLobbyWorldName))
 
@@ -43,23 +54,38 @@ object LobbyManager {
             world = loadedLobbyWorld
         }
 
-        val worldManager = PluginManager.multiverseCore.mvWorldManager
-        worldManager.setFirstSpawnWorld(world.name)
-        val mvWorld = worldManager.getMVWorld(world)
+        configureLobby()
+    }
 
-        if (mvWorld == null) {
-            PluginManager.getLogger().warning(
-                "Мир ${world.name} не найден в Multiverse-Core. Настройки Multiverse для лобби не применены.",
-            )
-        } else {
-            mvWorld.setTime("day")
-            mvWorld.setEnableWeather(false)
-            mvWorld.setDifficulty(Difficulty.PEACEFUL)
-            mvWorld.setGameMode(GameMode.ADVENTURE)
-            mvWorld.setPVPMode(false)
-            mvWorld.hunger = false
+    private fun configureLobby() {
+        if (!::multiverseCore.isInitialized) {
+            PluginManager.getLogger().warning("Multiverse-Core не инициализирован, пропускаем настройку MVWorld")
+            return
         }
 
+        val coreApi = MultiverseCoreApi.get();
+        val worldManager = coreApi.worldManager
+        val mvWorldOption = worldManager.getWorld(world.name)
+
+        if (mvWorldOption.isDefined) {
+            val mvWorld = mvWorldOption.get()
+
+            mvWorld.setAllowWeather(false)
+            mvWorld.setDifficulty(Difficulty.PEACEFUL)
+            mvWorld.setGameMode(GameMode.ADVENTURE)
+            mvWorld.setPvp(false)
+            mvWorld.setHunger(false)
+
+            try {
+                val setTimeMethod = mvWorld.javaClass.getMethod("setTime", Long::class.java)
+                setTimeMethod.invoke(mvWorld, 1000L) // Day time
+            } catch (_: Exception) {
+            }
+        } else {
+            PluginManager.getLogger().warning("Мир ${world.name} не зарегистрирован в Multiverse")
+        }
+
+        // Настройка Bukkit мира
         world.setGameRule(GameRule.FALL_DAMAGE, false)
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
@@ -68,13 +94,7 @@ object LobbyManager {
     }
 
     fun teleportToLobby(player: Player) {
-        val lobbySpawnLocation = PluginManager.multiverseCore.mvWorldManager.getMVWorld(world)?.spawnLocation ?: world.spawnLocation
-
-        PluginManager.multiverseCore.teleportPlayer(
-            Bukkit.getConsoleSender(),
-            player,
-            lobbySpawnLocation,
-        )
+        player.teleport(world.spawnLocation)
 
         LobbyReadyBossBar.setFor(player)
         val audience = Audience.audience(player)
@@ -144,7 +164,7 @@ object LobbyManager {
         }
 
         if (readyPlayers.count() >= Config.get(ConfigKeys.PLAYERS_TO_START) && gameStartTask == null) {
-            if (WorldManager.hasReadyWorld()) {
+            if (ArenaManager.hasReadyArena()) {
                 startLobbyCountdown()
             } else {
                 getReadyPlayersAudience().sendMessage(

@@ -31,6 +31,8 @@ abstract class Zone(
         this.z2 = maxOf(z1, z2)
     }
 
+    abstract fun clone(): Zone
+
     companion object {
         fun deserialize(values: Map<String, Any>): Zone? {
             AceRacePlugin.instance.logger.info("Десериализация информации о зоне ${values["name"]}")
@@ -51,9 +53,10 @@ abstract class Zone(
     abstract fun execute(player: Player)
 
     fun isInside(playerLoc: Location): Boolean {
-        return playerLoc.x in this.x1..this.x2&&
-                playerLoc.y in this.y1 ..this.y2 &&
-                playerLoc.z in this.z1 ..this.z2
+        val EPSILON = 0.001
+        return playerLoc.x >= this.x1 - EPSILON && playerLoc.x <= this.x2 + EPSILON &&
+                playerLoc.y >= this.y1 - EPSILON && playerLoc.y <= this.y2 + EPSILON &&
+                playerLoc.z >= this.z1 - EPSILON && playerLoc.z <= this.z2 + EPSILON
     }
 
     fun serialize(): Map<String, Any> {

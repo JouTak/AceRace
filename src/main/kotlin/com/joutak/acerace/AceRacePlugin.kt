@@ -1,12 +1,15 @@
 package com.joutak.acerace
 
+import com.joutak.acerace.arenas.ArenaManager
 import com.joutak.acerace.checkpoints.CheckpointManager
+import com.joutak.acerace.checkpoints.CheckpointConfig
+import com.joutak.acerace.commands.CheckpointCommand
 import com.joutak.acerace.commands.AceRaceCommandExecutor
+import com.joutak.acerace.commands.ZoneCommand
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.listeners.*
 import com.joutak.acerace.players.PlayerData
 import com.joutak.acerace.utils.LobbyReadyBossBar
-import com.joutak.acerace.worlds.WorldManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
@@ -17,9 +20,12 @@ class AceRacePlugin : JavaPlugin() {
     companion object {
         @JvmStatic
         lateinit var instance: AceRacePlugin
+        lateinit var checkpointManager: CheckpointManager
+            private set
     }
 
     private var customConfig = YamlConfiguration()
+
     private fun loadConfig() {
         val fx = File(dataFolder, "config.yml")
         if (!fx.exists()) {
@@ -28,8 +34,19 @@ class AceRacePlugin : JavaPlugin() {
     }
 
     override fun onEnable() {
-        // Plugin startup logic
         instance = this
+
+        checkpointManager = CheckpointManager()
+
+        val loaded = CheckpointConfig.loadAll()
+        loaded.forEach {
+            checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+        }
+        logger.info("Загружено ${loaded.size} зон чекпоинтов. " +
+                "Финиш = CP ${checkpointManager.maxCheckpointIndex}")
+
+        ZoneManager.loadZones()
+        logger.info("Загружено ${ZoneManager.getZones().size} шаблонных зон")
 
         loadData()
         loadConfig()
@@ -40,20 +57,16 @@ class AceRacePlugin : JavaPlugin() {
         registerCommands()
 
         logger.info("AceRace plugin version ${pluginMeta.version} enabled!")
-
     }
 
     private fun loadData() {
         PlayerData.reloadDatas()
-        WorldManager.loadWorlds()
-        ZoneManager.loadZones()
-        CheckpointManager.loadCheckpoints()
+        ArenaManager.init(checkpointManager)
     }
 
     private fun registerEvents() {
         Bukkit.getPluginManager().registerEvents(PlayerJumpingOnBlockListener(), this)
         Bukkit.getPluginManager().registerEvents(PlayerRunningOnBlockListener(), this)
-        Bukkit.getPluginManager().registerEvents(PlayerMoveListener(), this)
         Bukkit.getPluginManager().registerEvents(PlayerJoinListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerQuitListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerChangeWorldListener, this)
@@ -61,22 +74,31 @@ class AceRacePlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlayerInteractWithInventoryListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerGettingDamageListener, this)
         Bukkit.getPluginManager().registerEvents(PlayerLoginListener, this)
+        Bukkit.getPluginManager().registerEvents(CheckpointListener(checkpointManager), this)
+        Bukkit.getPluginManager().registerEvents(ZoneListener(), this)
+        Bukkit.getPluginManager().registerEvents(PlayerFallListener(), this)
+        Bukkit.getPluginManager().registerEvents(PlayerElytraListener(), this)
+        Bukkit.getPluginManager().registerEvents(PlayerUnderwaterListener(), this)
     }
 
     private fun registerCommands() {
         getCommand("ar")?.setExecutor(AceRaceCommandExecutor)
+        val cpCommand = CheckpointCommand(checkpointManager)
+        getCommand("cp")?.setExecutor(cpCommand)
+        getCommand("cp")?.tabCompleter = cpCommand
+        val zoneCommand = ZoneCommand()
+        getCommand("zone")?.setExecutor(zoneCommand)
+        getCommand("zone")?.tabCompleter = zoneCommand
     }
 
     override fun onDisable() {
-        // Plugin shutdown logic\
         SpartakiadaManager.stopWatching()
         for (player in Bukkit.getOnlinePlayers()) {
             PlayerData.get(player.uniqueId).save()
         }
         saveConfig()
-        WorldManager.saveWorlds()
+        ArenaManager.shutdown()
         ZoneManager.saveZones()
-        CheckpointManager.saveCheckpoints()
         logger.info("AceRace plugin version ${pluginMeta.version} disabled!")
     }
 }

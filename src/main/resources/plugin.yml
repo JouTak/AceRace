@@ -14,6 +14,14 @@ libraries:
 commands:
   ar:
     description: AceRace commands
+  cp:
+    description: Checkpoints commands
+    usage: /cp <setpos1|setpos2|remove|list|reload|clear|info> [index]
+    permission: acerace.admin
+  zone:
+    description: Zone management commands
+    usage: /zone <args>
+    permission: acerace.admin
 
 permissions:
   acerace.admin:
