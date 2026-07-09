@@ -3,6 +3,7 @@ package com.joutak.acerace.checkpoints
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.players.PlayerData
+import com.joutak.acerace.utils.PluginManager
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.UUID
@@ -223,11 +224,19 @@ class CheckpointManager {
             val expected = lastPassed + 1
 
             if (zone.checkpointIndex > expected) {
-                data.setMissedCheck(true)
-                return CheckpointResult.WrongOrder(
-                    attempted = zone.checkpointIndex,
-                    required = expected
-                )
+                if (zone.checkpointIndex == maxCheckpointIndex) {
+                    PluginManager.getLogger().warning("Ёбик попробовал пройти ласт чекпоинт первым хд")
+                    return CheckpointResult.Nothing
+                } else if (zone.checkpointIndex == 0){
+                    PluginManager.getLogger().warning("Ёбик попробовал пройти 0 чекпоинт дважды хд")
+                    return CheckpointResult.Nothing
+                } else {
+                    data.setMissedCheck(true)
+                    return CheckpointResult.WrongOrder(
+                        attempted = zone.checkpointIndex,
+                        required = expected
+                    )
+                }
             }
 
             if (zone.checkpointIndex == expected) {
