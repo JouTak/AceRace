@@ -15,6 +15,7 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
+import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -119,12 +120,27 @@ class PlayerFallListener : Listener {
 
         val centerX = (targetZone.min.x + targetZone.max.x) / 2
         val centerZ = (targetZone.min.z + targetZone.max.z) / 2
-        val y = targetZone.min.y + 1.0
+
+        val groundY = findGroundY(player.world, centerX, centerZ, targetZone.min.y.toInt())
+
+        if (groundY == null) {
+            val y = targetZone.min.y + 1.0
+            val targetLocation = Location(
+                player.world,
+                centerX,
+                y,
+                centerZ,
+                player.location.yaw,
+                player.location.pitch
+            )
+            player.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
+            return
+        }
 
         val targetLocation = Location(
             player.world,
             centerX,
-            y,
+            groundY + 1.0,
             centerZ,
             player.location.yaw,
             player.location.pitch
@@ -137,4 +153,26 @@ class PlayerFallListener : Listener {
 
         player.setNoDamageTicks(10)
     }
+
+    private fun findGroundY(world: World, x: Double, z: Double, startY: Int): Double? {
+        val minY = -64
+        val maxY = startY + 10
+
+        for (y in maxY downTo minY) {
+            val block = world.getBlockAt(x.toInt(), y, z.toInt())
+            val blockAbove = world.getBlockAt(x.toInt(), y + 1, z.toInt())
+            val blockBelow = world.getBlockAt(x.toInt(), y - 1, z.toInt())
+
+            if (block.type.isSolid && !blockAbove.type.isSolid) {
+                return y.toDouble() // Нашли пол
+            }
+
+            if (block.type.isSolid && blockAbove.type.isSolid) {
+                continue
+            }
+        }
+
+        return null
+    }
+
 }

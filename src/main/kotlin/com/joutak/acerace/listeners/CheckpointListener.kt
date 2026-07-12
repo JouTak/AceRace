@@ -35,10 +35,6 @@ class CheckpointListener (private val checkpointManager: CheckpointManager) : Li
 
         val player = event.player
 
-        if (player.isGliding) {
-            println("🪶 [${player.name}] Летит на элитрах! Позиция: ${to.blockX}, ${to.blockY}, ${to.blockZ}")
-        }
-
         val game = GameManager.getByPlayer(player)
         if (game == null) {
             return

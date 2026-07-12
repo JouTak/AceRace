@@ -18,9 +18,11 @@ import java.util.UUID
  * /cp setpos2 <index>  — встать во второй угол, зона сохраняется
  * /cp remove  <index>  — удалить все зоны чекпоинта
  * /cp list             — список всех зон
+ * /cp save - сохранить чекпоинт зоны для этого мира
  * /cp reload           — перезагрузить зоны из файла
  * /cp clear            — удалить все зоны
  * /cp info             — показать maxCheckpointIndex и кол-во зон
+ * /cp worlds           показать все миры с чекпоинт зонами
  */
 class CheckpointCommand(
     private val checkpointManager: CheckpointManager
@@ -80,19 +82,64 @@ class CheckpointCommand(
                 val min = pos1Data.second
                 val max = sender.location.clone()
 
+                if (min.world?.name != max.world?.name) {
+                    sender.err("Нельзя использовать точки из разных миров!")
+                    pendingPos1.remove(sender.uniqueId)
+                    return true
+                }
 
                 val zone = CheckpointZone(index, min, max)
+                val worldName = sender.world.name
 
                 checkpointManager.addZone(index, min, max)
-                CheckpointConfig.saveZone(zone)
+                CheckpointConfig.saveZone(zone, worldName)
                 pendingPos1.remove(sender.uniqueId)
 
                 val count = checkpointManager.getZones()
                     .count { it.checkpointIndex == index }
 
                 sender.ok(
-                    "Зона CP $index сохранена! " +
+                    "Зона CP $index сохранена в мире $worldName! " +
                             "Зон для этого CP: $count. " +
+                            "Финиш = CP ${checkpointManager.maxCheckpointIndex}"
+                )
+            }
+
+            // ------------------------------------------------------------------
+
+            "save" -> {
+                val worldName = sender.world.name
+                val zones = checkpointManager.getZones()
+                if (zones.isEmpty()) {
+                    sender.err("Нет зон для сохранения!")
+                    return true
+                }
+
+                // Сначала очищаем старые зоны для этого мира
+                checkpointManager.clearZonesForArena(worldName)
+                CheckpointConfig.clearAll(worldName)
+
+                // Сохраняем все зоны
+                var savedCount = 0
+                zones.forEach { zone ->
+                    CheckpointConfig.saveZone(zone, worldName)
+                    savedCount++
+                }
+
+                sender.ok("Сохранено $savedCount зон для мира $worldName!")
+            }
+
+            // ------------------------------------------------------------------
+
+            "load" -> {
+                val worldName = sender.world.name
+                checkpointManager.clearZones()
+                val loaded = CheckpointConfig.loadAll(worldName)
+                loaded.forEach {
+                    checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+                }
+                sender.ok(
+                    "Загружено ${loaded.size} зон из мира $worldName. " +
                             "Финиш = CP ${checkpointManager.maxCheckpointIndex}"
                 )
             }
@@ -104,11 +151,12 @@ class CheckpointCommand(
                     sender.err("Использование: /cp remove <index>")
                     return true
                 }
+                val worldName = sender.world.name
                 checkpointManager.removeZonesByIndex(index)
-                CheckpointConfig.removeZonesByIndex(index)
+                CheckpointConfig.removeZonesByIndex(index, worldName)
                 sender.sendMessage(
                     Component.text(
-                        "Все зоны CP $index удалены. " +
+                        "Все зоны CP $index удалены из мира $worldName. " +
                                 "Финиш теперь = CP ${checkpointManager.maxCheckpointIndex}",
                         NamedTextColor.YELLOW
                     )
@@ -117,17 +165,18 @@ class CheckpointCommand(
 
             // ------------------------------------------------------------------
             "list" -> {
+                val worldName = sender.world.name
                 val zones = checkpointManager.getZones()
                 if (zones.isEmpty()) {
                     sender.sendMessage(
-                        Component.text("Зон нет!", NamedTextColor.GRAY)
+                        Component.text("Зон для мира $worldName нет!", NamedTextColor.GRAY)
                     )
                     return true
                 }
 
                 sender.sendMessage(
                     Component.text(
-                        "=== Чекпоинты (финиш = CP ${checkpointManager.maxCheckpointIndex}) ===",
+                        "=== Чекпоинты для мира $worldName (финиш = CP ${checkpointManager.maxCheckpointIndex}) ===",
                         NamedTextColor.AQUA
                     )
                 )
@@ -162,32 +211,39 @@ class CheckpointCommand(
 
             // ------------------------------------------------------------------
             "reload" -> {
+                val worldName = sender.world.name
                 checkpointManager.clearZones()
-                val loaded = CheckpointConfig.loadAll()
+                checkpointManager.clearZonesForArena(worldName)
+                val loaded = CheckpointConfig.loadAll(worldName)
                 loaded.forEach {
                     checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+                    val zones = checkpointManager.getZones()
+                    checkpointManager.loadZonesForArena(worldName, zones)
                 }
                 sender.ok(
-                    "Загружено ${loaded.size} зон. " +
+                    "Загружено ${loaded.size} зон из мира $worldName. " +
                             "Финиш = CP ${checkpointManager.maxCheckpointIndex}"
                 )
             }
 
             // ------------------------------------------------------------------
             "clear" -> {
+                val worldName = sender.world.name
                 checkpointManager.clearZones()
-                CheckpointConfig.clearAll()
+                checkpointManager.clearZonesForArena(worldName)
+                CheckpointConfig.clearAll(worldName)
                 sender.sendMessage(
-                    Component.text("Все зоны удалены!", NamedTextColor.RED)
+                    Component.text("Все зоны для мира $worldName удалены!", NamedTextColor.RED)
                 )
             }
 
             // ------------------------------------------------------------------
             "info" -> {
+                val worldName = sender.world.name
                 val zones = checkpointManager.getZones()
                 val grouped = zones.groupBy { it.checkpointIndex }
                 sender.sendMessage(
-                    Component.text("=== Информация ===", NamedTextColor.AQUA)
+                    Component.text("=== Информация для мира $worldName ===", NamedTextColor.AQUA)
                 )
                 sender.sendMessage(
                     Component.text(
@@ -208,6 +264,32 @@ class CheckpointCommand(
                     )
                 )
             }
+            // ------------------------------------------------------------------
+
+            "worlds" -> {
+                val worlds = CheckpointConfig.getAllWorlds()
+                if (worlds.isEmpty()) {
+                    sender.sendMessage(
+                        Component.text("Нет миров с сохраненными зонами!", NamedTextColor.GRAY)
+                    )
+                    return true
+                }
+
+                sender.sendMessage(
+                    Component.text("=== Миры с чекпоинтами ===", NamedTextColor.AQUA)
+                )
+                worlds.forEach { worldName ->
+                    val zones = CheckpointConfig.loadAll(worldName)
+                    sender.sendMessage(
+                        Component.text(
+                            "  $worldName — ${zones.size} зон(ы)",
+                            NamedTextColor.WHITE
+                        )
+                    )
+                }
+            }
+
+            // ------------------------------------------------------------------
 
             "test" -> {
                 val player = sender as Player
@@ -259,7 +341,7 @@ class CheckpointCommand(
         label: String,
         args: Array<String>
     ): List<String> = when (args.size) {
-        1 -> listOf("setpos1", "setpos2", "remove", "list", "reload", "clear", "info")
+        1 -> listOf("setpos1", "setpos2", "remove", "list", "save", "reload", "clear", "info", "worlds", "test")
             .filter { it.startsWith(args[0].lowercase()) }
         2 -> when (args[0].lowercase()) {
             "setpos1", "setpos2", "remove" ->

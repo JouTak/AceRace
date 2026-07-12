@@ -15,8 +15,8 @@ object CheckpointConfig {
     private var config: YamlConfiguration =
         YamlConfiguration.loadConfiguration(file)
 
-    fun saveZone(zone: CheckpointZone) {
-        val basePath = "checkpoints.${zone.checkpointIndex}.zones"
+    fun saveZone(zone: CheckpointZone, worldName: String) {
+        val basePath = "worlds.$worldName.checkpoints.${zone.checkpointIndex}.zones"
         val existing = config.getConfigurationSection(basePath)
         val nextIndex = existing?.getKeys(false)?.size ?: 0
 
@@ -27,22 +27,27 @@ object CheckpointConfig {
         config.save(file)
     }
 
-    fun removeZonesByIndex(checkpointIndex: Int) {
-        config.set("checkpoints.$checkpointIndex", null)
+    fun removeZonesByIndex(checkpointIndex: Int, worldName: String) {
+        config.set("worlds.$worldName.checkpoints.$checkpointIndex", null)
         config.save(file)
     }
 
-    fun clearAll() {
-        config.set("checkpoints", null)
+    fun clearAll(worldName: String) {
+        config.set("worlds.$worldName", null)
         config.save(file)
     }
 
-    fun loadAll(): List<CheckpointZone> {
+    fun loadAll(worldName: String): List<CheckpointZone> {
         config = YamlConfiguration.loadConfiguration(file)
         val result = mutableListOf<CheckpointZone>()
 
-        val checkpointsSection =
-            config.getConfigurationSection("checkpoints") ?: return emptyList()
+        val worldSection = config.getConfigurationSection("worlds.$worldName")
+            ?: return emptyList()
+
+        val checkpointsSection = worldSection.getConfigurationSection("checkpoints")
+            ?: return emptyList()
+
+        val world = Bukkit.getWorld(worldName) ?: return emptyList()
 
         for (cpKey in checkpointsSection.getKeys(false)) {
             val cpIndex = cpKey.toIntOrNull() ?: continue
@@ -51,8 +56,8 @@ object CheckpointConfig {
 
             for (zoneKey in zonesSection.getKeys(false)) {
                 val zonePath = "$cpKey.zones.$zoneKey"
-                val min = loadLocation("checkpoints.$zonePath.min") ?: continue
-                val max = loadLocation("checkpoints.$zonePath.max") ?: continue
+                val min = loadLocation("worlds.$worldName.checkpoints.$zonePath.min", world) ?: continue
+                val max = loadLocation("worlds.$worldName.checkpoints.$zonePath.max", world) ?: continue
                 result.add(CheckpointZone(cpIndex, min, max))
             }
         }
@@ -60,16 +65,19 @@ object CheckpointConfig {
         return result
     }
 
+    fun getAllWorlds(): List<String> {
+        config = YamlConfiguration.loadConfiguration(file)
+        val worldsSection = config.getConfigurationSection("worlds") ?: return emptyList()
+        return worldsSection.getKeys(false).toList()
+    }
+
     private fun saveLocation(path: String, loc: Location) {
-        config.set("$path.world", loc.world?.name)
         config.set("$path.x", loc.x)
         config.set("$path.y", loc.y)
         config.set("$path.z", loc.z)
     }
 
-    private fun loadLocation(path: String): Location? {
-        val worldName = config.getString("$path.world") ?: return null
-        val world = Bukkit.getWorld(worldName) ?: return null
+    private fun loadLocation(path: String, world: org.bukkit.World): Location? {
         val x = config.getDouble("$path.x")
         val y = config.getDouble("$path.y")
         val z = config.getDouble("$path.z")

@@ -38,12 +38,18 @@ class AceRacePlugin : JavaPlugin() {
 
         checkpointManager = CheckpointManager()
 
-        val loaded = CheckpointConfig.loadAll()
-        loaded.forEach {
-            checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+        val worlds = CheckpointConfig.getAllWorlds()
+        if (worlds.isNotEmpty()) {
+            worlds.forEach { worldName ->
+                val loaded = CheckpointConfig.loadAll(worldName)
+                loaded.forEach {
+                    checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+                }
+
+                checkpointManager.loadZonesForArena(worldName, loaded)
+                logger.info("Загружено ${loaded.size} зон чекпоинтов для мира $worldName")
+            }
         }
-        logger.info("Загружено ${loaded.size} зон чекпоинтов. " +
-                "Финиш = CP ${checkpointManager.maxCheckpointIndex}")
 
         ZoneManager.loadZones()
         logger.info("Загружено ${ZoneManager.getZones().size} шаблонных зон")
