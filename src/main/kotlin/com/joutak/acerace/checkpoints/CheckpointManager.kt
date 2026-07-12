@@ -225,13 +225,14 @@ class CheckpointManager {
 
             if (zone.checkpointIndex > expected) {
                 if (zone.checkpointIndex == maxCheckpointIndex) {
-                    PluginManager.getLogger().warning("Ёбик попробовал пройти ласт чекпоинт первым хд")
                     return CheckpointResult.Nothing
                 } else if (zone.checkpointIndex == 0){
-                    PluginManager.getLogger().warning("Ёбик попробовал пройти 0 чекпоинт дважды хд")
                     return CheckpointResult.Nothing
                 } else {
                     data.setMissedCheck(true)
+                    if (!data.missedCheck()) {
+                        PluginManager.getLogger().warning("Игрок ${player.name} пропустил чекпоинт ${expected}, пытается пройти ${zone.checkpointIndex}")
+                    }
                     return CheckpointResult.WrongOrder(
                         attempted = zone.checkpointIndex,
                         required = expected

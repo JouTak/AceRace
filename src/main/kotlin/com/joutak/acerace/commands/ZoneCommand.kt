@@ -18,11 +18,12 @@ import java.util.UUID
 
 /**
  * Команды для управления зонами:
- * /zone create <name> <type> [pos1] [pos2]  — создать зону
  * /zone setpos1 <name>                      — установить первую точку
  * /zone setpos2 <name>                      — установить вторую точку
  * /zone remove <name>                       — удалить зону
- * /zone list                                — список всех зон
+ * /zone list — список всех зон
+ * /zone save - сохранить зоны
+ * /zone load - загрузить для текущего мира
  * /zone reload                              — перезагрузить зоны из файла
  * /zone clear                               — удалить все зоны
  * /zone info <name>                         — информация о зоне
@@ -30,7 +31,7 @@ import java.util.UUID
  */
 class ZoneCommand : CommandExecutor, TabCompleter {
 
-    private val pendingPos1 = mutableMapOf<UUID, Pair<String, org.bukkit.Location>>()
+    private val pendingPos1 = mutableMapOf<UUID, Triple<String, ZoneType, Location>>()
 
     override fun onCommand(
         sender: CommandSender,
@@ -50,114 +51,86 @@ class ZoneCommand : CommandExecutor, TabCompleter {
 
         when (args.getOrNull(0)?.lowercase()) {
 
-            "create" -> {
+            "setpos1" -> {
                 val name = args.getOrNull(1)
                 val typeStr = args.getOrNull(2)?.uppercase()
 
                 if (name == null || typeStr == null) {
-                    sender.err("Использование: /zone create <name> <type>")
-                    sender.sendMessage(Component.text(
-                        "Доступные типы: ${ZoneType.values().joinToString(", ")}",
-                        NamedTextColor.GRAY
-                    ))
+                    sender.err("Использование: /zone setpos1 <name> <type> (BARRIER, ELYTRA, UNDERWATER)")
+                    sender.err("Пример: /zone setpos1 myZone ELYTRA")
                     return true
                 }
 
                 val type = try {
                     ZoneType.valueOf(typeStr)
                 } catch (e: IllegalArgumentException) {
-                    sender.err("Неизвестный тип: $typeStr")
-                    sender.sendMessage(Component.text(
-                        "Доступные типы: ${ZoneType.values().joinToString(", ")}",
-                        NamedTextColor.GRAY
-                    ))
+                    sender.err("Неверный тип зоны! Доступные: BARRIER, ELYTRA, UNDERWATER")
                     return true
                 }
 
-                try {
-                    ZoneManager.getZone(name)
-                    sender.err("Зона с именем '$name' уже существует!")
-                    return true
-                } catch (e: IllegalArgumentException) {
-                }
-
-                pendingPos1[sender.uniqueId] = Pair(name, sender.location.clone())
-                sender.ok("Зона '$name' ($type) создается. Используй /zone setpos2 $name")
-                sender.sendMessage(Component.text(
-                    "Pos1: ${sender.location.blockX}, ${sender.location.blockY}, ${sender.location.blockZ}",
-                    NamedTextColor.GRAY
-                ))
-            }
-
-            "setpos1" -> {
-                val name = args.getOrNull(1)
-                if (name == null) {
-                    sender.err("Использование: /zone setpos1 <name>")
-                    return true
-                }
-
-                pendingPos1[sender.uniqueId] = Pair(name, sender.location.clone())
-                sender.ok("Pos1 для зоны '$name' установлена")
+                pendingPos1[sender.uniqueId] = Triple(name, type, sender.location.clone())
+                sender.ok(
+                    "Pos1 для зоны '$name' типа $type: " +
+                            "${sender.location.blockX}, " +
+                            "${sender.location.blockY}, " +
+                            "${sender.location.blockZ}"
+                )
             }
 
             "setpos2" -> {
                 val name = args.getOrNull(1)
-                if (name == null) {
-                    sender.err("Использование: /zone setpos2 <name>")
+                val typeStr = args.getOrNull(2)?.uppercase()
+
+                if (name == null || typeStr == null) {
+                    sender.err("Использование: /zone setpos2 <name> <type>")
+                    return true
+                }
+
+                val type = try {
+                    ZoneType.valueOf(typeStr)
+                } catch (e: IllegalArgumentException) {
+                    sender.err("Неверный тип зоны! Доступные: BARRIER, ELYTRA, UNDERWATER")
                     return true
                 }
 
                 val pos1Data = pendingPos1[sender.uniqueId]
-                if (pos1Data == null || pos1Data.first != name) {
-                    sender.err("Сначала установи /zone setpos1 $name")
+                if (pos1Data == null || pos1Data.first != name || pos1Data.second != type) {
+                    sender.err("Сначала установи /zone setpos1 $name $typeStr")
                     return true
                 }
+
+                val pos1 = pos1Data.third
+                val pos2 = sender.location.clone()
+
+                if (pos1.world?.name != pos2.world?.name) {
+                    sender.err("Нельзя использовать точки из разных миров!")
+                    pendingPos1.remove(sender.uniqueId)
+                    return true
+                }
+
+                val worldName = sender.world.name
 
                 try {
-                    ZoneManager.getZone(name)
-                    sender.err("Зона '$name' уже существует! Используй /zone remove $name")
-                    return true
+                    val existingZone = ZoneManager.getZone(name)
+                    ZoneManager.removeZone(name)
                 } catch (e: IllegalArgumentException) {
-                    // OK
                 }
-
-                val typeStr = args.getOrNull(2)?.uppercase() ?: "BARRIER"
-                val type = try {
-                    ZoneType.valueOf(typeStr)
-                } catch (e: IllegalArgumentException) {
-                    sender.err("Неизвестный тип: $typeStr")
-                    return true
-                }
-
-                var pos1 = pos1Data.second
-                var pos2 = sender.location.clone()
-
-                val expanded = expandZone(pos1, pos2)
-                pos1 = expanded.first
-                pos2 = expanded.second
 
                 val zone = ZoneFactory.createZone(
                     type,
                     name,
-                    pos1.x, pos1.y, pos1.z,
-                    pos2.x, pos2.y, pos2.z
+                    worldName,
+                    pos1,
+                    pos2
                 )
-
                 ZoneManager.addZone(zone)
-
                 pendingPos1.remove(sender.uniqueId)
 
-                sender.ok("Зона '$name' ($type) сохранена в шаблоне!")
-                sender.sendMessage(Component.text(
-                    "(${zone.x1.toInt()}, ${zone.y1.toInt()}, ${zone.z1.toInt()}) -> " +
-                            "(${zone.x2.toInt()}, ${zone.y2.toInt()}, ${zone.z2.toInt()})",
-                    NamedTextColor.GRAY
-                ))
-
-                sender.sendMessage(Component.text(
-                    "Используй /zone sync, чтобы применить изменения ко всем аренам",
-                    NamedTextColor.YELLOW
-                ))
+                sender.ok(
+                    "Зона '$name' типа $type сохранена в мире $worldName! " +
+                            "Координаты: (${pos1.blockX},${pos1.blockY},${pos1.blockZ}) -> " +
+                            "(${pos2.blockX},${pos2.blockY},${pos2.blockZ})"
+                )
             }
 
 
@@ -170,38 +143,91 @@ class ZoneCommand : CommandExecutor, TabCompleter {
 
                 try {
                     ZoneManager.removeZone(name)
-                    sender.ok("Зона '$name' удалена из шаблона!")
+                    pendingPos1.remove(sender.uniqueId)
+                    sender.ok("Зона '$name' удалена!")
                 } catch (e: IllegalArgumentException) {
-                    sender.err("Зона '$name' не найдена!")
+                    sender.err(e.message ?: "Зона не найдена!")
                 }
             }
 
             "list" -> {
                 val zones = ZoneManager.getZones()
                 if (zones.isEmpty()) {
-                    sender.sendMessage(Component.text("Шаблонных зон нет!", NamedTextColor.GRAY))
+                    sender.sendMessage(Component.text("Зон нет!", NamedTextColor.GRAY))
                     return true
                 }
 
                 sender.sendMessage(
-                    Component.text("=== Шаблонные зоны (${zones.size}) ===", NamedTextColor.AQUA)
+                    Component.text("=== Зоны ===", NamedTextColor.AQUA)
                 )
 
-                zones.values.sortedBy { it.name }.forEach { zone ->
-                    sender.sendMessage(Component.text(
-                        "  ${zone.type} - ${zone.name}",
-                        NamedTextColor.WHITE
-                    ))
+                zones.values.groupBy { it.worldName }.forEach { (worldName, worldZones) ->
+                    sender.sendMessage(
+                        Component.text("Мир: $worldName", NamedTextColor.GOLD)
+                    )
+                    worldZones.forEach { zone ->
+                        sender.sendMessage(
+                            Component.text(
+                                "  ${zone.name} (${zone.type}) - " +
+                                        "(${zone.x1.toInt()},${zone.y1.toInt()},${zone.z1.toInt()}) -> " +
+                                        "(${zone.x2.toInt()},${zone.y2.toInt()},${zone.z2.toInt()})",
+                                NamedTextColor.WHITE
+                            )
+                        )
+                    }
+                }
+            }
+
+            "save" -> {
+                try {
+                    ZoneManager.saveZones()
+                    sender.ok("Зоны сохранены!")
+                } catch (e: Exception) {
+                    sender.err("Ошибка при сохранении: ${e.message}")
+                }
+            }
+
+            "load" -> {
+                try {
+                    ZoneManager.loadZones()
+                    sender.ok("Зоны загружены!")
+                } catch (e: Exception) {
+                    sender.err("Ошибка при загрузке: ${e.message}")
                 }
             }
 
             "reload" -> {
-                ZoneManager.loadZones()
-                sender.ok("Шаблонные зоны перезагружены! Загружено ${ZoneManager.getZones().size} зон")
-                sender.sendMessage(Component.text(
-                    "Используй /zone sync для синхронизации с аренами",
-                    NamedTextColor.YELLOW
-                ))
+                try {
+                    ZoneManager.loadZones()
+                    val worldName = sender.world.name
+                    ZoneManager.loadZonesForArena(worldName)
+                    sender.ok("Зоны перезагружены для мира $worldName!")
+                } catch (e: Exception) {
+                    sender.err("Ошибка при перезагрузке: ${e.message}")
+                }
+            }
+
+            "worlds" -> {
+                val worlds = ZoneManager.getAllWorlds()
+                if (worlds.isEmpty()) {
+                    sender.sendMessage(
+                        Component.text("Нет миров с зонами!", NamedTextColor.GRAY)
+                    )
+                    return true
+                }
+
+                sender.sendMessage(
+                    Component.text("=== Миры с зонами ===", NamedTextColor.AQUA)
+                )
+                worlds.forEach { worldName ->
+                    val zones = ZoneManager.getZones().values.filter { it.worldName == worldName }
+                    sender.sendMessage(
+                        Component.text(
+                            "  $worldName — ${zones.size} зон(ы)",
+                            NamedTextColor.WHITE
+                        )
+                    )
+                }
             }
 
             "clear" -> {
@@ -325,11 +351,9 @@ class ZoneCommand : CommandExecutor, TabCompleter {
         label: String,
         args: Array<String>
     ): List<String> = when (args.size) {
-        1 -> listOf("create", "setpos1", "setpos2", "remove", "list", "reload", "clear", "info", "test", "sync")
+        1 -> listOf("setpos1", "setpos2", "remove", "list", "reload", "clear", "info", "test", "sync")
             .filter { it.startsWith(args[0].lowercase()) }
         2 -> when (args[0].lowercase()) {
-            "create" -> listOf("barrier_zone", "elytra_zone", "underwater_zone")
-                .filter { it.startsWith(args[1]) }
             "setpos1", "setpos2", "remove", "info", "test" -> {
                 ZoneManager.getZones().keys.filter { it.startsWith(args[1]) }
             }

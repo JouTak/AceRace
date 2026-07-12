@@ -49,30 +49,49 @@ object ZoneManager {
         }
 
         zonesFile = YamlConfiguration.loadConfiguration(fx)
-        val zonesList = zonesFile.getMapList("zones")
+
+        val worldsSection = zonesFile.getConfigurationSection("worlds")
+        if (worldsSection == null) {
+            return
+        }
 
         templateZones.clear()
 
-        for (value in zonesList) {
-            try {
-                val normalizedValue = value.entries.associate { (key, entryValue) ->
-                    key.toString() to (entryValue ?: throw IllegalArgumentException("Пустое значение в zones.yml"))
+        for (worldName in worldsSection.getKeys(false)) {
+            val zonesList = zonesFile.getMapList("worlds.$worldName.zones")
+
+            for (value in zonesList) {
+                try {
+                    val normalizedValue = value.entries.associate { (key, entryValue) ->
+                        key.toString() to (entryValue ?: throw IllegalArgumentException("Пустое значение в zones.yml"))
+                    }
+                    val finalValue = normalizedValue.toMutableMap().apply {
+                        if (!containsKey("worldName")) {
+                            put("worldName", worldName)
+                        }
+                    }
+                    val zone = Zone.deserialize(finalValue)
+                    if (zone != null) {
+                        templateZones[zone.name] = zone
+                    }
+                } catch (e: Exception) {
+                    AceRacePlugin.instance.logger.severe("Ошибка при загрузке зоны из мира $worldName: ${e.message}")
                 }
-                val zone = Zone.deserialize(normalizedValue)
-                if (zone != null) {
-                    templateZones[zone.name] = zone
-                }
-            } catch (e: Exception) {
-                AceRacePlugin.instance.logger.severe("Ошибка при загрузке зон: ${e.message}")
-                break
             }
         }
+
+        AceRacePlugin.instance.logger.info("Загружено ${templateZones.size} шаблонных зон")
     }
 
 
     fun saveZones() {
         val fx = File(AceRacePlugin.instance.dataFolder, "zones.yml")
-        zonesFile.set("zones", templateZones.values.map { it.serialize() })
+
+        val worlds = templateZones.values.groupBy { it.worldName }
+        worlds.forEach { (worldName, zones) ->
+            zonesFile.set("worlds.$worldName.zones", zones.map {it.serialize()})
+        }
+
         try {
             zonesFile.save(fx)
         } catch (e: IOException) {
@@ -88,42 +107,13 @@ object ZoneManager {
         }
 
         val clonedZones = templateZones.values.map { templateZone ->
-            when (templateZone) {
-                is ZoneBarrier -> ZoneBarrier(
-                    name = templateZone.name,
-                    x1 = templateZone.x1,
-                    y1 = templateZone.y1,
-                    z1 = templateZone.z1,
-                    x2 = templateZone.x2,
-                    y2 = templateZone.y2,
-                    z2 = templateZone.z2
-                )
-                is ZoneGiveElytra -> ZoneGiveElytra(
-                    name = templateZone.name,
-                    x1 = templateZone.x1,
-                    y1 = templateZone.y1,
-                    z1 = templateZone.z1,
-                    x2 = templateZone.x2,
-                    y2 = templateZone.y2,
-                    z2 = templateZone.z2
-                )
-                is ZoneUnderwaterBoost -> ZoneUnderwaterBoost(
-                    name = templateZone.name,
-                    x1 = templateZone.x1,
-                    y1 = templateZone.y1,
-                    z1 = templateZone.z1,
-                    x2 = templateZone.x2,
-                    y2 = templateZone.y2,
-                    z2 = templateZone.z2
-                )
-                else -> templateZone
-            }
+            templateZone.clone(arenaWorldName)
         }.toMutableList()
 
         arenaZones[arenaWorldName] = clonedZones
 
         val barrierCount = clonedZones.filterIsInstance<ZoneBarrier>().size
-        AceRacePlugin.instance.logger.info("✅ Клонировано ${clonedZones.size} зон для арены $arenaWorldName (BARRIER: $barrierCount)")
+        AceRacePlugin.instance.logger.info("Клонировано ${clonedZones.size} зон для арены $arenaWorldName (BARRIER: $barrierCount)")
     }
 
     fun getZonesForArena(arenaWorldName: String): List<Zone> {
@@ -144,4 +134,11 @@ object ZoneManager {
             }
         }
     }
+
+    fun getAllWorlds(): List<String> {
+        zonesFile = YamlConfiguration.loadConfiguration(File(AceRacePlugin.instance.dataFolder, "zones.yml"))
+        val worldsSection = zonesFile.getConfigurationSection("worlds") ?: return emptyList()
+        return worldsSection.getKeys(false).toList()
+    }
+
 }

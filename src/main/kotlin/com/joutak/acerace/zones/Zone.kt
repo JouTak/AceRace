@@ -4,10 +4,12 @@ import com.joutak.acerace.AceRacePlugin
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
+import java.util.UUID
 
 abstract class Zone(
     val type: ZoneType,
     val name: String,
+    val worldName: String,
     x1: Double,
     y1: Double,
     z1: Double,
@@ -22,6 +24,8 @@ abstract class Zone(
     val y2: Double
     val z2: Double
 
+    val id: String = UUID.randomUUID().toString()
+
     init {
         this.x1 = minOf(x1, x2)
         this.x2 = maxOf(x1, x2)
@@ -31,15 +35,18 @@ abstract class Zone(
         this.z2 = maxOf(z1, z2)
     }
 
-    abstract fun clone(): Zone
+    abstract fun clone(newWorldName: String): Zone
 
     companion object {
         fun deserialize(values: Map<String, Any>): Zone? {
             AceRacePlugin.instance.logger.info("Десериализация информации о зоне ${values["name"]}")
 
+            val worldName = values["worldName"] as? String ?: "AceRaceTemplate"
+
             return ZoneFactory.createZone(
                 ZoneType.valueOf(values["type"] as String),
                 values["name"] as String,
+                worldName,
                 values["x1"] as Double,
                 values["y1"] as Double,
                 values["z1"] as Double,
@@ -53,6 +60,9 @@ abstract class Zone(
     abstract fun execute(player: Player)
 
     fun isInside(playerLoc: Location): Boolean {
+
+        if (playerLoc.world?.name != worldName) return false
+
         val EPSILON = 0.001
         return playerLoc.x >= this.x1 - EPSILON && playerLoc.x <= this.x2 + EPSILON &&
                 playerLoc.y >= this.y1 - EPSILON && playerLoc.y <= this.y2 + EPSILON &&
