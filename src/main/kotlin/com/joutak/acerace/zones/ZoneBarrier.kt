@@ -14,4 +14,16 @@ class ZoneBarrier(
 
     override fun execute(player: Player){
     }
+
+    override fun clone(): Zone {
+        return ZoneBarrier(
+            name = this.name,
+            x1 = this.x1,
+            y1 = this.y1,
+            z1 = this.z1,
+            x2 = this.x2,
+            y2 = this.y2,
+            z2 = this.z2
+        )
+    }
 }

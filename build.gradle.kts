@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compileOnly(libs.kotlin)
     compileOnly(libs.paper)
-    compileOnly(libs.multiverse)
+    compileOnly("org.mvplugins.multiverse.core:multiverse-core:5.7.0")
 }
 
 kotlin {
