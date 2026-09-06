@@ -14,17 +14,10 @@ object AceRaceCommandExecutor : CommandExecutor, TabExecutor {
     private val commands = mutableMapOf<String, AceRaceCommand>()
 
     init {
-        registerCommand(AceRaceAddZoneCommand)
-        registerCommand(AceRaceZoneListCommand)
-        registerCommand(AceRaceZoneInfoCommand)
-        registerCommand(AceRaceRemoveZoneCommand)
         registerCommand(AceRaceChangeConfigCommand)
+        registerCommand(AceRaceReloadConfigCommand)
         registerCommand(AceRaceReadyCommand)
         registerCommand(AceRaceAddWorldCommand)
-        registerCommand(AceRaceAddCheckpointCommand)
-        registerCommand(AceRaceRemoveCheckpointCommand)
-        registerCommand(AceRaceCheckpointListCommand)
-        registerCommand(AceRaceCheckpointInfoCommand)
         registerCommand(AceRaceWorldListCommand)
         registerCommand(AceRaceSpectateCommand)
         registerCommand(AceRaceAddLeaderboardCommand)

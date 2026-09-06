@@ -1,8 +1,8 @@
 package com.joutak.acerace.utils
 
-import com.onarandombox.MultiverseCore.MultiverseCore
 import com.joutak.acerace.AceRacePlugin
 import org.bukkit.Bukkit
+import org.mvplugins.multiverse.core.MultiverseCore
 import java.io.File
 import java.util.logging.Logger
 

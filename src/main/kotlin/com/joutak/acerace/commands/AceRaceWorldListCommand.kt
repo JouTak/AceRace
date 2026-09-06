@@ -1,6 +1,6 @@
 package com.joutak.acerace.commands
 
-import com.joutak.acerace.worlds.WorldManager
+import com.joutak.acerace.arenas.ArenaManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
@@ -15,11 +15,11 @@ object AceRaceWorldListCommand : AceRaceCommand("worldList", listOf(), "acerace.
             return false
         }
 
-        if (WorldManager.getWorlds().isEmpty()) {
-            sender.sendMessage("Нет свободных миров.")
+        if (ArenaManager.getArenas().isEmpty()) {
+            sender.sendMessage("Нет активных арен.")
         } else {
-            sender.sendMessage("Список свободных миров:")
-            WorldManager.getWorlds().values.forEach {
+            sender.sendMessage("Список арен:")
+            ArenaManager.getArenas().values.forEach {
                 sender.sendMessage(it.worldName)
             }
         }

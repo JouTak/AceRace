@@ -7,15 +7,19 @@ import java.io.File
 
 object Config {
     private val configFile = File(PluginManager.getDataFolder(), "config.yml")
-    private val config: YamlConfiguration
+    private lateinit var config: YamlConfiguration
 
     init {
         AceRacePlugin.instance.getLogger().info("Загрузка значений из конфига...")
+        ensureConfigExists()
+        config = YamlConfiguration.loadConfiguration(configFile)
+        saveDefaults()
+    }
+
+    private fun ensureConfigExists() {
         if (!configFile.exists()) {
             AceRacePlugin.instance.saveResource("config.yml", true)
         }
-        config = YamlConfiguration.loadConfiguration(configFile)
-        saveDefaults()
     }
 
     private fun saveDefaults() {
@@ -28,6 +32,12 @@ object Config {
             }
         }
         config.save(configFile)
+    }
+
+    fun reload() {
+        ensureConfigExists()
+        config = YamlConfiguration.loadConfiguration(configFile)
+        saveDefaults()
     }
 
     fun <T : Any> get(key: ConfigKey<T>): T {

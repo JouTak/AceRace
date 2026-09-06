@@ -1,11 +1,14 @@
 package com.joutak.acerace.players
 
+import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.utils.LobbyManager
 import com.joutak.acerace.utils.PluginManager
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes.uuid
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.io.IOException
@@ -25,6 +28,13 @@ data class PlayerData(
             }
 
         File(root, "players").apply { mkdirs() }
+    }
+
+    private var lastCheckpointZoneId: String = ""
+
+    fun getLastCheckpointZoneId(): String = lastCheckpointZoneId
+    fun setLastCheckpointZoneId(zoneId: String) {
+        lastCheckpointZoneId = zoneId
     }
 
     companion object {
@@ -153,5 +163,19 @@ data class PlayerData(
         } finally {
             cache.remove(playerUuid)
         }
+    }
+
+    fun getLastCheckpointLocation(): Location? {
+        val lastCheck = getLastCheck().toIntOrNull() ?: return null
+        val player = Bukkit.getPlayer(playerUuid) ?: return null
+        val worldName = player.world.name
+        val zones = AceRacePlugin.checkpointManager.getZonesForArena(worldName)
+        val zone = zones.filter { it.checkpointIndex == lastCheck }.firstOrNull() ?: return null
+
+        val centerX = (zone.min.x + zone.max.x) / 2
+        val centerZ = (zone.min.z + zone.max.z) / 2
+        val y = zone.min.y + 1.0
+
+        return Location(player.world, centerX, y, centerZ)
     }
 }

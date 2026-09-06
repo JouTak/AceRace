@@ -1,7 +1,8 @@
 package com.joutak.acerace.commands
+
+import com.joutak.acerace.arenas.ArenaManager
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.utils.LobbyManager
-import com.joutak.acerace.worlds.WorldManager
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -37,13 +38,14 @@ object AceRaceSpectateCommand : AceRaceCommand("spectate", listOf("name"), "acer
             return true
         }
 
-        // else if (startSpectating)
-        val world = WorldManager.get(args[0])
-        if (world == null) {
-            sender.sendMessage("Мира с таким именем не существует.")
+        val arena = try {
+            ArenaManager.get(args[0])
+        } catch (e: IllegalArgumentException) {
+            sender.sendMessage(e.message ?: "Арены с таким именем не существует.")
             return true
         }
-        val game = GameManager.getByWorld(world)
+
+        val game = GameManager.getByWorld(arena)
         if (game == null) {
             sender.sendMessage("В данный момент на арене не идет игра.")
             return true
@@ -61,7 +63,7 @@ object AceRaceSpectateCommand : AceRaceCommand("spectate", listOf("name"), "acer
         args: Array<out String>,
     ): List<String> =
         when (args.size) {
-            1 -> WorldManager.getWorlds().keys.filter { it.startsWith(args[0], true) }
+            1 -> ArenaManager.getArenas().keys.filter { it.startsWith(args[0], true) }
             else -> emptyList()
         }
 }

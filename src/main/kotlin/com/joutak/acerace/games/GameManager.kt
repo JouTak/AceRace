@@ -1,23 +1,23 @@
 package com.joutak.acerace.games
 
+import com.joutak.acerace.arenas.Arena
+import com.joutak.acerace.arenas.ArenaManager
 import com.joutak.acerace.config.Config
 import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.utils.LobbyManager
-import com.joutak.acerace.worlds.World
-import com.joutak.acerace.worlds.WorldManager
 import org.bukkit.entity.Player
-import java.util.*
+import java.util.UUID
 import kotlin.math.min
 
 object GameManager {
     private val games = mutableMapOf<UUID, Game>()
 
     fun createNewGame(): Game {
-        val world = WorldManager.getReadyWorld()!!
+        val arena = ArenaManager.acquireReadyArena() ?: throw IllegalStateException("Нет свободной арены.")
         val players = LobbyManager.getReadyPlayers()
             .slice(0..<min(LobbyManager.getReadyPlayers().size, Config.get(ConfigKeys.MAX_PLAYERS_IN_GAME)))
             .toMutableList()
-        val game = Game(world, players)
+        val game = Game(arena, players)
 
         games[game.uuid] = game
 
@@ -37,9 +37,9 @@ object GameManager {
         return null
     }
 
-    fun getByWorld(world: World): Game? {
+    fun getByWorld(arena: Arena): Game? {
         for (game in games.values) {
-            if (game.world == world) {
+            if (game.arena == arena) {
                 return game
             }
         }
@@ -64,7 +64,6 @@ object GameManager {
         }
         return false
     }
-
 
     fun remove(gameUuid: UUID) {
         games.remove(gameUuid)
