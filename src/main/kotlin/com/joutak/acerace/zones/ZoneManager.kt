@@ -99,6 +99,20 @@ object ZoneManager {
         }
     }
 
+    fun loadZonesForLobby(lobbyWorldName: String){
+        val world = Bukkit.getWorld(lobbyWorldName)
+        if (world == null) {
+            AceRacePlugin.instance.logger.warning("Мир лобби $lobbyWorldName не найден!")
+            return
+        }
+
+        val lobbyZones = templateZones.values.map {templateZone -> templateZone.clone(lobbyWorldName)}.toMutableList()
+
+        arenaZones[lobbyWorldName] = lobbyZones
+
+        AceRacePlugin.instance.logger.info("Загружено ${lobbyZones.size} зон для лобби $lobbyWorldName")
+    }
+
     fun loadZonesForArena(arenaWorldName: String) {
         val world = Bukkit.getWorld(arenaWorldName)
         if (world == null) {

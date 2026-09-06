@@ -7,6 +7,7 @@ import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GameScoreboard
 import com.joutak.acerace.games.SpartakiadaManager
 import com.joutak.acerace.players.PlayerData
+import com.joutak.acerace.zones.ZoneManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
@@ -91,6 +92,8 @@ object LobbyManager {
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false)
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false)
+
+        ZoneManager.loadZonesForLobby(world.name)
     }
 
     fun teleportToLobby(player: Player) {

@@ -3,6 +3,7 @@ package com.joutak.acerace.listeners
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GamePhase
 import com.joutak.acerace.players.PlayerData
+import com.joutak.acerace.utils.LobbyManager
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -19,6 +20,14 @@ class PlayerUnderwaterListener : Listener {
         val to = event.to ?: return
 
         val worldName = to.world?.name ?: return
+
+        if (worldName == LobbyManager.world.name) {
+            if (player.isInWater) {
+                giveWaterBreathing(player)
+            }
+            return
+        }
+
         if (!worldName.startsWith("AceRaceMap_")) return
 
         val game = GameManager.getByPlayer(player)

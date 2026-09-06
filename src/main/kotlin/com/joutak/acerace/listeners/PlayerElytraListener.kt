@@ -3,6 +3,7 @@ package com.joutak.acerace.listeners
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GamePhase
 import com.joutak.acerace.players.PlayerData
+import com.joutak.acerace.utils.LobbyManager
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -19,6 +20,12 @@ class PlayerElytraListener : Listener {
         val to = event.to ?: return
 
         val worldName = to.world?.name ?: return
+
+        if (worldName == LobbyManager.world.name) {
+            handleElytraCheck(player, to)
+            return
+        }
+
         if (!worldName.startsWith("AceRaceMap_")) return
 
         val game = GameManager.getByPlayer(player)
@@ -27,11 +34,14 @@ class PlayerElytraListener : Listener {
         val data = PlayerData.get(player.uniqueId)
         if (!data.isReady() || data.isFinished()) return
 
+    }
+
+    private fun handleElytraCheck(player: Player, location: org.bukkit.Location) {
         val chestplate = player.inventory.chestplate
         if (chestplate == null || chestplate.type != Material.ELYTRA) return
 
         if (player.isOnGround && !player.isGliding) {
-            val blockBelow = to.clone().subtract(0.0, 0.1, 0.0).block
+            val blockBelow = location.clone().subtract(0.0, 0.1, 0.0).block
             if (blockBelow.type.isSolid) {
                 removeElytra(player)
             }

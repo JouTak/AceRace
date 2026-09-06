@@ -2,6 +2,7 @@ package com.joutak.acerace.listeners
 
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GamePhase
+import com.joutak.acerace.utils.LobbyManager
 import com.joutak.acerace.zones.ZoneManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -21,6 +22,11 @@ class ZoneListener : Listener {
         ) return
 
         val player = event.player
+
+        if (player.world.name == LobbyManager.world.name) {
+            ZoneManager.checkPlayerZones(player)
+            return
+        }
 
         val worldName = to.world?.name ?: return
         if (!worldName.startsWith("AceRaceMap_")) return
