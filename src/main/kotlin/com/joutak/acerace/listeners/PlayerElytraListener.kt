@@ -34,6 +34,8 @@ class PlayerElytraListener : Listener {
         val data = PlayerData.get(player.uniqueId)
         if (!data.isReady() || data.isFinished()) return
 
+        handleElytraCheck(player, to)
+        return
     }
 
     private fun handleElytraCheck(player: Player, location: org.bukkit.Location) {
