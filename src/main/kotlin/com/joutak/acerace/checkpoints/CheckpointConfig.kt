@@ -23,6 +23,7 @@ object CheckpointConfig {
         val zonePath = "$basePath.$nextIndex"
         saveLocation("$zonePath.min", zone.min)
         saveLocation("$zonePath.max", zone.max)
+        config.set("$zonePath.yaw", zone.yaw)
 
         config.save(file)
     }
@@ -58,7 +59,8 @@ object CheckpointConfig {
                 val zonePath = "$cpKey.zones.$zoneKey"
                 val min = loadLocation("worlds.$worldName.checkpoints.$zonePath.min", world) ?: continue
                 val max = loadLocation("worlds.$worldName.checkpoints.$zonePath.max", world) ?: continue
-                result.add(CheckpointZone(cpIndex, min, max))
+                val yaw = config.getDouble("worlds.$worldName.checkpoints.$zonePath.yaw", 0.0).toFloat()
+                result.add(CheckpointZone(cpIndex, min, max, yaw))
             }
         }
 

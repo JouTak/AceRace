@@ -43,7 +43,7 @@ class AceRacePlugin : JavaPlugin() {
             worlds.forEach { worldName ->
                 val loaded = CheckpointConfig.loadAll(worldName)
                 loaded.forEach {
-                    checkpointManager.addZone(it.checkpointIndex, it.min, it.max)
+                    checkpointManager.addZone(it.checkpointIndex, it.min, it.max, it.yaw)
                 }
 
                 checkpointManager.loadZonesForArena(worldName, loaded)
