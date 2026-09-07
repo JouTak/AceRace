@@ -104,7 +104,6 @@ class AceRacePlugin : JavaPlugin() {
         }
         saveConfig()
         ArenaManager.shutdown()
-        ZoneManager.saveZones()
         logger.info("AceRace plugin version ${pluginMeta.version} disabled!")
     }
 }
