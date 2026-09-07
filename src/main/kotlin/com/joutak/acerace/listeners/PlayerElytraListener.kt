@@ -42,11 +42,9 @@ class PlayerElytraListener : Listener {
         val chestplate = player.inventory.chestplate
         if (chestplate == null || chestplate.type != Material.ELYTRA) return
 
-        if (player.isOnGround && !player.isGliding) {
-            val blockBelow = location.clone().subtract(0.0, 0.1, 0.0).block
-            if (blockBelow.type.isSolid) {
+        if (!player.isGliding) {
                 removeElytra(player)
-            }
+
         }
     }
 
