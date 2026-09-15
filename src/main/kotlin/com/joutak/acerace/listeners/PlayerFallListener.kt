@@ -122,21 +122,9 @@ class PlayerFallListener : Listener {
         val centerZ = (targetZone.min.z + targetZone.max.z) / 2
         val zoneYaw = targetZone.yaw
 
-        val groundY = findGroundY(player.world, centerX, centerZ, targetZone.min.y.toInt())
-
-        if (groundY == null) {
-            val y = targetZone.min.y + 1.0
-            val targetLocation = Location(
-                player.world,
-                centerX,
-                y,
-                centerZ,
-                zoneYaw,
-                player.location.pitch
-
-            )
-            player.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
-            return
+        var groundY = targetZone.min.y
+        while (player.world.getBlockAt(centerX.toInt(), (groundY + 1.0).toInt(), centerZ.toInt()).isSolid){
+            groundY += 1.0
         }
 
         val targetLocation = Location(
@@ -159,25 +147,5 @@ class PlayerFallListener : Listener {
         player.setNoDamageTicks(10)
     }
 
-    private fun findGroundY(world: World, x: Double, z: Double, startY: Int): Double? {
-        val minY = -64
-        val maxY = startY + 10
-
-        for (y in maxY downTo minY) {
-            val block = world.getBlockAt(x.toInt(), y, z.toInt())
-            val blockAbove = world.getBlockAt(x.toInt(), y + 1, z.toInt())
-            val blockBelow = world.getBlockAt(x.toInt(), y - 1, z.toInt())
-
-            if (block.type.isSolid && !blockAbove.type.isSolid) {
-                return y.toDouble() // Нашли пол
-            }
-
-            if (block.type.isSolid && blockAbove.type.isSolid) {
-                continue
-            }
-        }
-
-        return null
-    }
 
 }

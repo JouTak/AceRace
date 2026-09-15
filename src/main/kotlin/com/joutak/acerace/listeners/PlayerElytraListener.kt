@@ -52,7 +52,6 @@ class PlayerElytraListener : Listener {
         val chestplate = player.inventory.chestplate
         if (chestplate != null && chestplate.type == Material.ELYTRA) {
             player.inventory.chestplate = null
-            player.playSound(player.location, org.bukkit.Sound.ENTITY_ITEM_BREAK, 0.5f, 1.0f)
         }
     }
 }
