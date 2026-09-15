@@ -50,15 +50,12 @@ object ZoneManager {
 
         zonesFile = YamlConfiguration.loadConfiguration(fx)
 
-        val worldsSection = zonesFile.getConfigurationSection("worlds")
-        if (worldsSection == null) {
-            return
-        }
+        val zonesSection = zonesFile.getConfigurationSection("zones") ?: return
 
         templateZones.clear()
 
-        for (worldName in worldsSection.getKeys(false)) {
-            val zonesList = zonesFile.getMapList("worlds.$worldName.zones")
+        for (worldName in zonesSection.getKeys(false)) {
+            val zonesList = zonesFile.getMapList("zones.$worldName")
 
             for (value in zonesList) {
                 try {
@@ -89,7 +86,7 @@ object ZoneManager {
 
         val worlds = templateZones.values.groupBy { it.worldName }
         worlds.forEach { (worldName, zones) ->
-            zonesFile.set("worlds.$worldName.zones", zones.map {it.serialize()})
+            zonesFile.set("zones.$worldName", zones.map {it.serialize()})
         }
 
         try {

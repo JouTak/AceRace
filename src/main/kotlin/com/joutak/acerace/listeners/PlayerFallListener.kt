@@ -120,6 +120,7 @@ class PlayerFallListener : Listener {
 
         val centerX = (targetZone.min.x + targetZone.max.x) / 2
         val centerZ = (targetZone.min.z + targetZone.max.z) / 2
+        val zoneYaw = targetZone.yaw
 
         val groundY = findGroundY(player.world, centerX, centerZ, targetZone.min.y.toInt())
 
@@ -130,8 +131,9 @@ class PlayerFallListener : Listener {
                 centerX,
                 y,
                 centerZ,
-                player.location.yaw,
+                zoneYaw,
                 player.location.pitch
+
             )
             player.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
             return
@@ -142,9 +144,12 @@ class PlayerFallListener : Listener {
             centerX,
             groundY + 1.0,
             centerZ,
-            player.location.yaw,
+            zoneYaw,
             player.location.pitch
         )
+
+        Bukkit.getLogger().info("телепорт на локацию с x: ${targetLocation.x}, y: ${targetLocation.y}, z: ${targetLocation.z}, yaw: ${targetLocation.yaw}")
+
 
         player.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
 

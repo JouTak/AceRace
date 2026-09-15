@@ -40,14 +40,15 @@ class CheckpointManager {
                     zone.max.x,
                     zone.max.y,
                     zone.max.z
-                )
+                ),
+                yaw = zone.yaw
             )
         }
 
         arenaZones[arenaWorldName] = clonedZones.toMutableList()
         println("Загружено ${clonedZones.size} зон для арены $arenaWorldName")
         clonedZones.forEachIndexed { i, zone ->
-            println("  Зона $i: CP${zone.checkpointIndex}, мир: ${zone.min.world?.name}")
+            println("  Зона $i: CP${zone.checkpointIndex}, yaw: ${zone.yaw} , мир: ${zone.min.world?.name}")
         }
     }
 
@@ -59,8 +60,8 @@ class CheckpointManager {
         arenaZones.remove(arenaWorldName)
     }
 
-    fun addZone(checkpointIndex: Int, min: Location, max: Location) {
-        zones.add(CheckpointZone(checkpointIndex, min, max))
+    fun addZone(checkpointIndex: Int, min: Location, max: Location, yaw: Float = 0f) {
+        zones.add(CheckpointZone(checkpointIndex, min, max, yaw))
         if (checkpointIndex > maxCheckpointIndex) {
             maxCheckpointIndex = checkpointIndex
         }

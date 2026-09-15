@@ -2,6 +2,7 @@ package com.joutak.acerace.zones
 
 import com.joutak.acerace.AceRacePlugin
 import com.joutak.acerace.config.Config
+import com.joutak.acerace.config.ConfigKey
 import com.joutak.acerace.config.ConfigKeys
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -23,16 +24,15 @@ class ZoneGiveElytra(
     override fun execute(player: Player) {
         if (player.gameMode != GameMode.ADVENTURE) return
 
-        Bukkit.getScheduler().runTask(AceRacePlugin.instance, Runnable {
-            if (!player.isOnline || player.gameMode != GameMode.ADVENTURE) {
-                return@Runnable
-            }
+        if (player.inventory.chestplate != ItemStack(Material.ELYTRA)) player.inventory.chestplate = ItemStack(Material.ELYTRA)
 
-            player.inventory.chestplate = ItemStack(Material.ELYTRA)
-            player.isGliding = true
-            player.velocity = player.location.direction.multiply(Config.get(ConfigKeys.DIR_MP_ELYTRA))
-            player.velocity = player.velocity.setY(Config.get(ConfigKeys.SET_Y_ELYTRA))
-        })
+        player.isGliding = true
+
+        val direction = player.location.direction
+        val speed = Config.get(ConfigKeys.DIR_MP_ELYTRA)
+        val ySpeed = Config.get(ConfigKeys.SET_Y_ELYTRA)
+
+        player.velocity = direction.multiply(speed).setY(ySpeed)
     }
 
     override fun clone(newWorldName: String): Zone {

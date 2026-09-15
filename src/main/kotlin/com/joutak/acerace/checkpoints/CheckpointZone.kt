@@ -6,7 +6,8 @@ import java.util.UUID
 data class CheckpointZone(
     val checkpointIndex: Int,
     val min: Location,
-    val max: Location
+    val max: Location,
+    val yaw: Float = 0f
 ) {
     val id: String = UUID.randomUUID().toString()
 
@@ -30,5 +31,14 @@ data class CheckpointZone(
         return location.x >= minX - EPSILON && location.x <= maxX + EPSILON &&
                 location.y >= minY - EPSILON && location.y <= maxY + EPSILON &&
                 location.z >= minZ - EPSILON && location.z <= maxZ + EPSILON
+    }
+
+    fun getCenterWithRotation(): Location {
+        val centerX = (min.x + max.x) / 2
+        val centerY = (min.y + max.y) / 2
+        val centerZ = (min.z + max.z) / 2
+        val center = Location(min.world, centerX, centerY, centerZ)
+        center.yaw = yaw
+        return center
     }
 }

@@ -34,17 +34,17 @@ class PlayerElytraListener : Listener {
         val data = PlayerData.get(player.uniqueId)
         if (!data.isReady() || data.isFinished()) return
 
+        handleElytraCheck(player, to)
+        return
     }
 
     private fun handleElytraCheck(player: Player, location: org.bukkit.Location) {
         val chestplate = player.inventory.chestplate
         if (chestplate == null || chestplate.type != Material.ELYTRA) return
 
-        if (player.isOnGround && !player.isGliding) {
-            val blockBelow = location.clone().subtract(0.0, 0.1, 0.0).block
-            if (blockBelow.type.isSolid) {
+        if (!player.isGliding) {
                 removeElytra(player)
-            }
+
         }
     }
 
