@@ -15,7 +15,7 @@ class PlayerRunningOnBlockListener : Listener{
     fun playerMovingOnBlockEvent(event : PlayerMoveEvent){
         val player = event.player
 
-        if (player.hasPotionEffect(PotionEffectType.SPEED)) return
+//        if (player.hasPotionEffect(PotionEffectType.SPEED)) return
 
         if (player.location.block.getRelative(BlockFace.DOWN).getType() == Material.LIGHT_BLUE_CONCRETE){
             player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, Config.get(ConfigKeys.SPEED_DURATION), Config.get(ConfigKeys.SPEED_AMP)))

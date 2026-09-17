@@ -7,14 +7,8 @@ import com.joutak.acerace.config.ConfigKeys
 import com.joutak.acerace.games.GameManager
 import com.joutak.acerace.games.GamePhase
 import com.joutak.acerace.players.PlayerData
-import com.joutak.acerace.utils.PluginManager
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Particle
-import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -122,15 +116,12 @@ class PlayerFallListener : Listener {
         val centerZ = (targetZone.min.z + targetZone.max.z) / 2
         val zoneYaw = targetZone.yaw
 
-        var groundY = targetZone.min.y
-        while (player.world.getBlockAt(centerX.toInt(), (groundY + 1.0).toInt(), centerZ.toInt()).isSolid){
-            groundY += 1.0
-        }
+        var groundY = findSafeY(targetZone, player, centerX.toInt(), centerZ.toInt(), targetZone.min.y.toInt())?: (targetZone.min.y + ((targetZone.max.y - targetZone.min.y) / 2.0)).toInt()
 
         val targetLocation = Location(
             player.world,
             centerX,
-            groundY + 1.0,
+            groundY.toDouble(),
             centerZ,
             zoneYaw,
             player.location.pitch
@@ -138,6 +129,7 @@ class PlayerFallListener : Listener {
 
         Bukkit.getLogger().info("телепорт на локацию с x: ${targetLocation.x}, y: ${targetLocation.y}, z: ${targetLocation.z}, yaw: ${targetLocation.yaw}")
 
+        player.inventory.chestplate = null
 
         player.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
 
@@ -147,5 +139,25 @@ class PlayerFallListener : Listener {
         player.setNoDamageTicks(10)
     }
 
+    fun findSafeY(zone: CheckpointZone, player: Player, x: Int, z: Int, startY: Int) : Int? {
+
+        val minY = zone.min.y.toInt() + 1
+        val maxY = zone.max.y.toInt() - 2
+
+        var y = startY.coerceIn(minY, maxY)
+
+        while (y <= maxY) {
+            if (y <= zone.min.y.toInt() || y >= zone.max.y.toInt() - 1) {
+                val below = player.world.getBlockAt(x, y -1, z)
+                val at = player.world.getBlockAt(x, y , z)
+                val above = player.world.getBlockAt(x, y + 1, z)
+
+                if (below.isSolid && at.isPassable && above.isPassable) return y
+            }
+            y++
+        }
+
+        return null
+    }
 
 }
